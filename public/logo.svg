@@ -1,0 +1,81 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="imageGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000000" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  
+  <!-- Main background circle -->
+  <circle cx="60" cy="60" r="56" fill="url(#bgGradient)" filter="url(#shadow)"/>
+  
+  <!-- Image frame -->
+  <rect x="25" y="30" width="50" height="40" rx="4" fill="url(#imageGradient)" stroke="#cbd5e1" stroke-width="1.5"/>
+  
+  <!-- Image content (mountain landscape) -->
+  <g clip-path="url(#imageClip)">
+    <defs>
+      <clipPath id="imageClip">
+        <rect x="27" y="32" width="46" height="36" rx="2"/>
+      </clipPath>
+    </defs>
+    
+    <!-- Sky -->
+    <rect x="27" y="32" width="46" height="20" fill="#93c5fd"/>
+    
+    <!-- Mountains -->
+    <polygon points="27,52 40,38 50,45 60,35 73,50 73,68 27,68" fill="#64748b"/>
+    <polygon points="40,38 50,45 60,35 73,50 73,45 60,30 50,37 40,33" fill="#475569"/>
+    
+    <!-- Sun -->
+    <circle cx="65" cy="40" r="4" fill="#fbbf24"/>
+  </g>
+  
+  <!-- Editing tools overlay -->
+  <!-- Adjustment sliders -->
+  <g transform="translate(80, 35)">
+    <!-- Slider track -->
+    <rect x="0" y="0" width="20" height="2" rx="1" fill="#ffffff" opacity="0.8"/>
+    <rect x="0" y="6" width="20" height="2" rx="1" fill="#ffffff" opacity="0.6"/>
+    <rect x="0" y="12" width="20" height="2" rx="1" fill="#ffffff" opacity="0.4"/>
+    
+    <!-- Slider handles -->
+    <circle cx="12" cy="1" r="3" fill="#ffffff" stroke="#6366f1" stroke-width="1.5"/>
+    <circle cx="8" cy="7" r="3" fill="#ffffff" stroke="#6366f1" stroke-width="1.5"/>
+    <circle cx="15" cy="13" r="3" fill="#ffffff" stroke="#6366f1" stroke-width="1.5"/>
+  </g>
+  
+  <!-- Color picker/palette -->
+  <g transform="translate(30, 80)">
+    <circle cx="0" cy="0" r="4" fill="#ef4444"/>
+    <circle cx="10" cy="0" r="4" fill="#22c55e"/>
+    <circle cx="20" cy="0" r="4" fill="#3b82f6"/>
+    <circle cx="30" cy="0" r="4" fill="#f59e0b"/>
+    
+    <!-- Selection ring around blue -->
+    <circle cx="20" cy="0" r="5.5" fill="none" stroke="#ffffff" stroke-width="2"/>
+  </g>
+  
+  <!-- Magic wand tool -->
+  <g transform="translate(85, 75) rotate(15)">
+    <!-- Wand handle -->
+    <rect x="0" y="0" width="2" height="12" rx="1" fill="#64748b"/>
+    <!-- Wand tip -->
+    <polygon points="1,0 3,2 1,4 -1,2" fill="#fbbf24"/>
+    <!-- Sparkles -->
+    <g fill="#ffffff" opacity="0.9">
+      <circle cx="-3" cy="3" r="0.8"/>
+      <circle cx="5" cy="1" r="0.6"/>
+      <circle cx="2" cy="6" r="0.5"/>
+      <polygon points="6,8 7,9 6,10 5,9" />
+    </g>
+  </g>
+</svg>

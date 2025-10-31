@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pixel Perfect Image Editor
+
+A powerful, fast, and completely private online image editor built with Next.js and TypeScript. Edit your images directly in the browser without any uploads or account requirements.
+
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com)
+[![Built with Next.js](https://img.shields.io/badge/Built%20with-Next.js-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+
+## Features
+
+- **🎨 Complete Image Editing Suite**: Crop, resize, rotate, and apply filters
+- **⚡ Lightning Fast**: Client-side processing with Sharp.js for optimal performance
+- **🔒 100% Private**: No uploads, no accounts - everything happens in your browser
+- **📱 Responsive Design**: Works seamlessly on desktop, tablet, and mobile
+- **🌙 Dark/Light Mode**: Beautiful interface that adapts to your preference
+- **🎯 Pixel Perfect**: Precise editing tools for professional results
+
+## Tech Stack
+
+- **Frontend**: Next.js 14, React, TypeScript
+- **Styling**: Tailwind CSS, Radix UI components
+- **Image Processing**: Sharp.js for high-performance image manipulation
+- **State Management**: React hooks and context
+- **Deployment**: Vercel
 
 ## Getting Started
 
-First, run the development server:
+1. **Clone the repository**
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+   ```bash
+   git clone https://github.com/ubednama/pixel-perfect-image-processing.git
+   cd pixel-perfect-image-processing
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Install dependencies**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+   ```bash
+   npm install
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. **Run the development server**
 
-## Learn More
+   ```bash
+   npm run dev
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+4. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Architecture
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The editor follows a clean, simple architecture:
 
-## Deploy on Vercel
+- **Original Image**: The base image that never changes
+- **Single Edit Pipeline**: All edits (crop, filters, adjustments) are processed together
+- **Live Preview**: Real-time preview of all applied edits
+- **No Multiple States**: Clean, straightforward image processing workflow
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Planned Features
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **🔄 Enhanced Rotation**: Improved rotation functionality with better quality preservation
+- **✂️ Advanced Crop Tools**: More sophisticated cropping options and presets
+- **🎨 Additional Filters**: Expanded filter library with custom filter creation
+- **📐 Precision Tools**: Grid overlays, rulers, and alignment guides
+- **💾 Export Options**: Multiple format support and quality settings
+- **🔧 Batch Processing**: Process multiple images simultaneously
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is open source and available under the [MIT License](LICENSE).
