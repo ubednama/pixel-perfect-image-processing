@@ -1,27 +1,27 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { CustomCursor } from "@/components/CustomCursor"
-import { MobileLandscapeLock } from "@/components/MobileLandscapeLock"
-import { LandingView } from "@/components/LandingView"
-import { EditorView } from "@/components/EditorView"
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { CustomCursor } from "@/components/CustomCursor";
+import { MobileLandscapeLock } from "@/components/MobileLandscapeLock";
+import { LandingView } from "@/components/LandingView";
+import { EditorView } from "@/components/EditorView";
 
 export default function Home() {
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null)
-  const [originalImage, setOriginalImage] = useState<string | null>(null)
-  const [originalFilename, setOriginalFilename] = useState<string | null>(null)
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [originalImage, setOriginalImage] = useState<string | null>(null);
+  const [originalFilename, setOriginalFilename] = useState<string | null>(null);
 
   const handleImageUpload = (imageUrl: string, filename?: string) => {
-    setUploadedImage(imageUrl)
-    setOriginalImage(imageUrl)
-    setOriginalFilename(filename || null)
-  }
+    setUploadedImage(imageUrl);
+    setOriginalImage(imageUrl);
+    setOriginalFilename(filename || null);
+  };
 
   const handleReset = () => {
-    setUploadedImage(null)
-    setOriginalImage(null)
-  }
+    setUploadedImage(null);
+    setOriginalImage(null);
+  };
 
   return (
     <>
@@ -60,5 +60,5 @@ export default function Home() {
         </AnimatePresence>
       </div>
     </>
-  )
+  );
 }

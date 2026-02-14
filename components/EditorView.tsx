@@ -1,23 +1,23 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { EditorHeader } from "@/components/EditorHeader"
-import { OriginalPreview } from "@/components/OriginalPreview"
-import { EditingControls } from "@/components/EditingControls"
-import { CanvasViewport } from "@/components/CanvasViewport"
-import type { ImageEdits, ImageState, HistoryEntry } from "@/types/image-edits"
-import { useState, useEffect, useCallback } from "react"
-import { toast } from "sonner"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { motion } from "framer-motion";
+import { EditorHeader } from "@/components/EditorHeader";
+import { OriginalPreview } from "@/components/OriginalPreview";
+import { EditingControls } from "@/components/EditingControls";
+import { CanvasViewport } from "@/components/CanvasViewport";
+import type { ImageEdits, ImageState, HistoryEntry } from "@/types/image-edits";
+import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface EditorViewProps {
-  uploadedImage: string
-  originalImage: string
-  originalFilename?: string | null
-  onReset: () => void
-  onImageUpdate: (imageUrl: string) => void
-  onImageSelect?: (imageUrl: string, filename?: string) => void
+  uploadedImage: string;
+  originalImage: string;
+  originalFilename?: string | null;
+  onReset: () => void;
+  onImageUpdate: (imageUrl: string) => void;
+  onImageSelect?: (imageUrl: string, filename?: string) => void;
 }
 
 const defaultEdits: ImageEdits = {
@@ -169,32 +169,45 @@ const defaultEdits: ImageEdits = {
   // Color space operations
   toColorspace: "srgb",
   pipelineColorspace: "scrgb",
-}
+};
 
-export function EditorView({ uploadedImage, originalImage, originalFilename, onReset, onImageUpdate, onImageSelect }: EditorViewProps) {
+export function EditorView({
+  uploadedImage,
+  originalImage,
+  originalFilename,
+  onReset,
+  onImageUpdate,
+  onImageSelect,
+}: EditorViewProps) {
   // State management
   const [imageState, setImageState] = useState<ImageState>({
     baseImage: uploadedImage,
     originalImage: originalImage,
     edits: defaultEdits,
     processedImageUrl: "",
-  })
+  });
 
   // History management - completely rebuilt
-  const [history, setHistory] = useState<HistoryEntry[]>([])
-  const [historyIndex, setHistoryIndex] = useState(-1)
-  const [lastSavedImage, setLastSavedImage] = useState<string>(uploadedImage) // Track the last saved/fresh image
-  
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [lastSavedImage, setLastSavedImage] = useState<string>(uploadedImage); // Track the last saved/fresh image
+
   // UI state
-  const [leftSidebarOpen, setLeftSidebarOpen] = useState(true)
-  const [rightSidebarOpen, setRightSidebarOpen] = useState(true)
-  const [zoom, setZoom] = useState(1)
-  const [viewportBounds, setViewportBounds] = useState({ x: 0, y: 0, width: 1, height: 1 })
-  const [showOriginal, setShowOriginal] = useState(false)
-  const [hasEdits, setHasEdits] = useState(false)
-  const [cropMode, setCropMode] = useState(false)
-  const [initialEditStack, setInitialEditStack] = useState<ImageEdits>(defaultEdits)
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
+  const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
+  const [zoom, setZoom] = useState(1);
+  const [viewportBounds, setViewportBounds] = useState({
+    x: 0,
+    y: 0,
+    width: 1,
+    height: 1,
+  });
+  const [showOriginal, setShowOriginal] = useState(false);
+  const [hasEdits, setHasEdits] = useState(false);
+  const [cropMode, setCropMode] = useState(false);
+  const [initialEditStack, setInitialEditStack] =
+    useState<ImageEdits>(defaultEdits);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Initialize history with the uploaded image
   useEffect(() => {
@@ -203,57 +216,60 @@ export function EditorView({ uploadedImage, originalImage, originalFilename, onR
       edits: defaultEdits,
       baseImage: uploadedImage,
       timestamp: Date.now(),
-    }
-    setHistory([initialEntry])
-    setHistoryIndex(0)
-    setLastSavedImage(uploadedImage)
-  }, [uploadedImage])
+    };
+    setHistory([initialEntry]);
+    setHistoryIndex(0);
+    setLastSavedImage(uploadedImage);
+  }, [uploadedImage]);
 
   // Add to history function - rebuilt
-  const addToHistory = useCallback((action: string, edits: ImageEdits, baseImage?: string) => {
-    const newEntry: HistoryEntry = {
-      action,
-      edits: { ...edits },
-      baseImage: baseImage || lastSavedImage, // Always use last saved image as base
-      timestamp: Date.now(),
-    }
+  const addToHistory = useCallback(
+    (action: string, edits: ImageEdits, baseImage?: string) => {
+      const newEntry: HistoryEntry = {
+        action,
+        edits: { ...edits },
+        baseImage: baseImage || lastSavedImage, // Always use last saved image as base
+        timestamp: Date.now(),
+      };
 
-    setHistory(prev => {
-      // Remove any entries after current index (for when we're in middle of history)
-      const newHistory = prev.slice(0, historyIndex + 1)
-      newHistory.push(newEntry)
-      
-      // Limit history to 50 entries to prevent memory issues
-      if (newHistory.length > 50) {
-        return newHistory.slice(-50)
-      }
-      return newHistory
-    })
-    
-    setHistoryIndex(prev => prev + 1)
-  }, [historyIndex, lastSavedImage])
+      setHistory((prev) => {
+        // Remove any entries after current index (for when we're in middle of history)
+        const newHistory = prev.slice(0, historyIndex + 1);
+        newHistory.push(newEntry);
+
+        // Limit history to 50 entries to prevent memory issues
+        if (newHistory.length > 50) {
+          return newHistory.slice(-50);
+        }
+        return newHistory;
+      });
+
+      setHistoryIndex((prev) => prev + 1);
+    },
+    [historyIndex, lastSavedImage]
+  );
 
   // Handle edit changes - rebuilt to use last saved image as base
   const handleEditChange = useCallback(
     (newEdits: Partial<ImageEdits>, action = "Edit applied") => {
-      const updatedEdits = { ...imageState.edits, ...newEdits }
-      
+      const updatedEdits = { ...imageState.edits, ...newEdits };
+
       setImageState((prev) => ({
         ...prev,
         baseImage: lastSavedImage, // Always use last saved image as base for filters
         edits: updatedEdits,
         processedImageUrl: "", // Clear processed image to trigger reprocessing
-      }))
+      }));
 
-      setHasUnsavedChanges(true)
-      addToHistory(action, updatedEdits)
+      setHasUnsavedChanges(true);
+      addToHistory(action, updatedEdits);
     },
-    [imageState.edits, addToHistory, lastSavedImage],
-  )
+    [imageState.edits, addToHistory, lastSavedImage]
+  );
 
   const notifyOfChange = useCallback(() => {
-    setHasUnsavedChanges(true)
-  }, [])
+    setHasUnsavedChanges(true);
+  }, []);
 
   // Reset all edits
   const handleResetAll = useCallback(() => {
@@ -262,133 +278,136 @@ export function EditorView({ uploadedImage, originalImage, originalFilename, onR
       baseImage: lastSavedImage,
       edits: defaultEdits,
       processedImageUrl: "",
-    }))
-    setHasUnsavedChanges(false)
-    addToHistory("Reset all edits", defaultEdits)
-  }, [addToHistory, lastSavedImage])
+    }));
+    setHasUnsavedChanges(false);
+    addToHistory("Reset all edits", defaultEdits);
+  }, [addToHistory, lastSavedImage]);
 
   const handleImageUpdate = useCallback(
     (imageUrl: string) => {
       setImageState((prev) => ({
         ...prev,
         processedImageUrl: imageUrl,
-      }))
-      onImageUpdate(imageUrl)
+      }));
+      onImageUpdate(imageUrl);
     },
-    [onImageUpdate],
-  )
+    [onImageUpdate]
+  );
 
   // Save changes - rebuilt to properly update base image
   const handleSaveChanges = useCallback(() => {
     if (!imageState.processedImageUrl) {
-      toast.error("No processed image to save")
-      return
+      toast.error("No processed image to save");
+      return;
     }
 
     // Update the last saved image and reset edits
-    setLastSavedImage(imageState.processedImageUrl)
+    setLastSavedImage(imageState.processedImageUrl);
     setImageState((prev) => ({
       ...prev,
       baseImage: prev.processedImageUrl,
       originalImage: prev.processedImageUrl, // Update original image reference
       edits: defaultEdits,
       processedImageUrl: "",
-    }))
-    
+    }));
+
     // Clear history and start fresh from this saved state
     const savedEntry: HistoryEntry = {
       action: "Saved changes as new base",
       edits: defaultEdits,
       baseImage: imageState.processedImageUrl,
       timestamp: Date.now(),
-    }
-    setHistory([savedEntry])
-    setHistoryIndex(0)
-    setHasUnsavedChanges(false)
+    };
+    setHistory([savedEntry]);
+    setHistoryIndex(0);
+    setHasUnsavedChanges(false);
 
-    toast.success("Changes saved successfully")
-  }, [imageState.processedImageUrl])
+    toast.success("Changes saved successfully");
+  }, [imageState.processedImageUrl]);
 
   // Undo function - rebuilt
   const handleUndo = useCallback(() => {
     if (historyIndex > 0) {
-      const newIndex = historyIndex - 1
-      const entry = history[newIndex]
+      const newIndex = historyIndex - 1;
+      const entry = history[newIndex];
 
       setImageState((prev) => ({
         ...prev,
         baseImage: entry.baseImage,
         edits: entry.edits,
         processedImageUrl: "",
-      }))
+      }));
 
-      setHistoryIndex(newIndex)
-      toast.success(`Undid: ${entry.action}`)
+      setHistoryIndex(newIndex);
+      toast.success(`Undid: ${entry.action}`);
     }
-  }, [history, historyIndex])
+  }, [history, historyIndex]);
 
   // Redo function - rebuilt
   const handleRedo = useCallback(() => {
     if (historyIndex < history.length - 1) {
-      const newIndex = historyIndex + 1
-      const entry = history[newIndex]
+      const newIndex = historyIndex + 1;
+      const entry = history[newIndex];
 
       setImageState((prev) => ({
         ...prev,
         baseImage: entry.baseImage,
         edits: entry.edits,
         processedImageUrl: "",
-      }))
+      }));
 
-      setHistoryIndex(newIndex)
-      toast.success(`Redid: ${entry.action}`)
+      setHistoryIndex(newIndex);
+      toast.success(`Redid: ${entry.action}`);
     }
-  }, [history, historyIndex])
+  }, [history, historyIndex]);
 
   const handleZoomChange = useCallback(
-    (newZoom: number, newViewportBounds: { x: number; y: number; width: number; height: number }) => {
-      setZoom(newZoom)
-      setViewportBounds(newViewportBounds)
+    (
+      newZoom: number,
+      newViewportBounds: { x: number; y: number; width: number; height: number }
+    ) => {
+      setZoom(newZoom);
+      setViewportBounds(newViewportBounds);
     },
-    [],
-  )
+    []
+  );
 
   const handleZoomReset = useCallback(() => {
-    setZoom(1)
-  }, [])
+    setZoom(1);
+  }, []);
 
   const handleBeforeAfterToggle = useCallback((show: boolean) => {
-    setShowOriginal(show)
-  }, [])
+    setShowOriginal(show);
+  }, []);
 
-  const canUndo = historyIndex > 0
-  const canRedo = historyIndex < history.length - 1
+  const canUndo = historyIndex > 0;
+  const canRedo = historyIndex < history.length - 1;
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      const isMod = e.metaKey || e.ctrlKey
-      if (!isMod) return
+      const isMod = e.metaKey || e.ctrlKey;
+      if (!isMod) return;
 
-      const key = e.key.toLowerCase()
+      const key = e.key.toLowerCase();
       if (key === "z" && !e.shiftKey) {
-        e.preventDefault()
-        if (canUndo) handleUndo()
+        e.preventDefault();
+        if (canUndo) handleUndo();
       } else if ((key === "z" && e.shiftKey) || key === "y") {
-        e.preventDefault()
-        if (canRedo) handleRedo()
+        e.preventDefault();
+        if (canRedo) handleRedo();
       }
-    }
+    };
 
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [canUndo, canRedo, handleUndo, handleRedo])
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [canUndo, canRedo, handleUndo, handleRedo]);
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="min-h-screen bg-background"
+      className="bg-background min-h-screen"
     >
       <EditorHeader
         hasUnsavedChanges={hasUnsavedChanges}
@@ -404,7 +423,10 @@ export function EditorView({ uploadedImage, originalImage, originalFilename, onR
         targetKB={imageState.edits.downloadTargetKB}
         exportFormat={imageState.edits.exportFormat}
         onExportFormatChange={(format) =>
-          handleEditChange({ exportFormat: format }, `Changed export format to ${format}`)
+          handleEditChange(
+            { exportFormat: format },
+            `Changed export format to ${format}`
+          )
         }
         notifyOfChange={notifyOfChange}
         onImageSelect={onImageSelect}
@@ -416,7 +438,7 @@ export function EditorView({ uploadedImage, originalImage, originalFilename, onR
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2, delay: 0.05 }}
-        className="flex h-[calc(100vh-4rem)] relative"
+        className="relative flex h-[calc(100vh-4rem)]"
       >
         {/* Left Sidebar - Original Preview */}
         <motion.div
@@ -427,21 +449,29 @@ export function EditorView({ uploadedImage, originalImage, originalFilename, onR
             width: leftSidebarOpen ? 240 : 0,
           }}
           transition={{ duration: 0.2, ease: "easeInOut" }}
-          className="border-r border-border bg-card/50 backdrop-blur-sm overflow-hidden relative"
+          className="border-border bg-card/50 relative overflow-hidden border-r backdrop-blur-sm"
           style={{ width: leftSidebarOpen ? 240 : 0 }}
         >
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-            className="absolute -right-3 top-4 z-10 h-8 w-8 p-0 rounded-full bg-background border border-border shadow-md hover:bg-muted hover:shadow-lg transition-all duration-200"
+            className="bg-background border-border hover:bg-muted absolute top-4 -right-3 z-10 h-8 w-8 rounded-full border p-0 shadow-md transition-all duration-200 hover:shadow-lg"
             title={leftSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
-            {leftSidebarOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
+            {leftSidebarOpen ? (
+              <ChevronLeft size={14} />
+            ) : (
+              <ChevronRight size={14} />
+            )}
           </Button>
 
           {leftSidebarOpen && (
-            <OriginalPreview originalImage={imageState.originalImage} zoom={zoom} viewportBounds={viewportBounds} />
+            <OriginalPreview
+              originalImage={imageState.originalImage}
+              zoom={zoom}
+              viewportBounds={viewportBounds}
+            />
           )}
         </motion.div>
 
@@ -451,7 +481,7 @@ export function EditorView({ uploadedImage, originalImage, originalFilename, onR
             variant="ghost"
             size="sm"
             onClick={() => setLeftSidebarOpen(true)}
-            className="absolute left-2 top-4 z-20 h-8 w-8 p-0 rounded-full bg-background border border-border shadow-md hover:bg-muted hover:shadow-lg transition-all duration-200"
+            className="bg-background border-border hover:bg-muted absolute top-4 left-2 z-20 h-8 w-8 rounded-full border p-0 shadow-md transition-all duration-200 hover:shadow-lg"
             title="Expand sidebar"
           >
             <ChevronRight size={14} />
@@ -486,17 +516,21 @@ export function EditorView({ uploadedImage, originalImage, originalFilename, onR
             width: rightSidebarOpen ? 320 : 0,
           }}
           transition={{ duration: 0.2, ease: "easeInOut" }}
-          className="border-l border-border bg-card/50 backdrop-blur-sm overflow-hidden relative"
+          className="border-border bg-card/50 relative overflow-hidden border-l backdrop-blur-sm"
           style={{ width: rightSidebarOpen ? 320 : 0 }}
         >
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
-            className="absolute -left-3 top-4 z-10 h-8 w-8 p-0 rounded-full bg-background border border-border shadow-md hover:bg-muted hover:shadow-lg transition-all duration-200"
+            className="bg-background border-border hover:bg-muted absolute top-4 -left-3 z-10 h-8 w-8 rounded-full border p-0 shadow-md transition-all duration-200 hover:shadow-lg"
             title={rightSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
-            {rightSidebarOpen ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+            {rightSidebarOpen ? (
+              <ChevronRight size={14} />
+            ) : (
+              <ChevronLeft size={14} />
+            )}
           </Button>
 
           {rightSidebarOpen && (
@@ -517,5 +551,5 @@ export function EditorView({ uploadedImage, originalImage, originalFilename, onR
         </motion.div>
       </motion.div>
     </motion.div>
-  )
+  );
 }

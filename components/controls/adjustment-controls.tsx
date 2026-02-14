@@ -1,46 +1,71 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
-import { RotateCcw } from "lucide-react"
-import type { ImageEdits } from "@/types/image-edits"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { RotateCcw } from "lucide-react";
+import type { ImageEdits } from "@/types/image-edits";
 
 interface AdjustmentControlsProps {
-  edits: ImageEdits
-  onEditChange: (edits: Partial<ImageEdits>) => void
+  edits: ImageEdits;
+  onEditChange: (edits: Partial<ImageEdits>) => void;
 }
 
-export function AdjustmentControls({ edits, onEditChange }: AdjustmentControlsProps) {
+export function AdjustmentControls({
+  edits,
+  onEditChange,
+}: AdjustmentControlsProps) {
   const adjustments = [
-    { key: "brightness" as keyof ImageEdits, label: "Brightness", value: edits.brightness },
-    { key: "contrast" as keyof ImageEdits, label: "Contrast", value: edits.contrast },
-    { key: "saturation" as keyof ImageEdits, label: "Saturation", value: edits.saturation },
-    { key: "hue" as keyof ImageEdits, label: "Hue", value: edits.hue, min: -180, max: 180, unit: "°" },
-  ]
+    {
+      key: "brightness" as keyof ImageEdits,
+      label: "Brightness",
+      value: edits.brightness,
+    },
+    {
+      key: "contrast" as keyof ImageEdits,
+      label: "Contrast",
+      value: edits.contrast,
+    },
+    {
+      key: "saturation" as keyof ImageEdits,
+      label: "Saturation",
+      value: edits.saturation,
+    },
+    {
+      key: "hue" as keyof ImageEdits,
+      label: "Hue",
+      value: edits.hue,
+      min: -180,
+      max: 180,
+      unit: "°",
+    },
+  ];
 
   const handleAdjustmentChange = (key: keyof ImageEdits, value: number[]) => {
-    onEditChange({ [key]: value[0] })
-  }
+    onEditChange({ [key]: value[0] });
+  };
 
-  const handleInputChange = (key: keyof ImageEdits, e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number.parseInt(e.target.value) || 0
+  const handleInputChange = (
+    key: keyof ImageEdits,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = Number.parseInt(e.target.value) || 0;
     // Different ranges for different adjustments
-    let clampedValue: number
-    if (key === 'hue') {
-      clampedValue = Math.max(-180, Math.min(180, value))
+    let clampedValue: number;
+    if (key === "hue") {
+      clampedValue = Math.max(-180, Math.min(180, value));
     } else {
-      clampedValue = Math.max(-100, Math.min(100, value))
+      clampedValue = Math.max(-100, Math.min(100, value));
     }
-    onEditChange({ [key]: clampedValue })
-  }
+    onEditChange({ [key]: clampedValue });
+  };
 
   const resetAdjustment = (key: keyof ImageEdits) => {
-    onEditChange({ [key]: 0 })
-  }
+    onEditChange({ [key]: 0 });
+  };
 
   return (
     <div className="space-y-6">
@@ -50,7 +75,9 @@ export function AdjustmentControls({ edits, onEditChange }: AdjustmentControlsPr
           <div className="space-y-3">
             <Slider
               value={[adjustment.value as number]}
-              onValueChange={(value) => handleAdjustmentChange(adjustment.key, value)}
+              onValueChange={(value) =>
+                handleAdjustmentChange(adjustment.key, value)
+              }
               min={adjustment.min || -100}
               max={adjustment.max || 100}
               step={1}
@@ -63,9 +90,11 @@ export function AdjustmentControls({ edits, onEditChange }: AdjustmentControlsPr
                 onChange={(e) => handleInputChange(adjustment.key, e)}
                 min={adjustment.min || -100}
                 max={adjustment.max || 100}
-                className="w-20 h-8 text-sm"
+                className="h-8 w-20 text-sm"
               />
-              <span className="text-sm text-muted-foreground">{adjustment.unit || "%"}</span>
+              <span className="text-muted-foreground text-sm">
+                {adjustment.unit || "%"}
+              </span>
               <Button
                 variant="outline"
                 size="sm"
@@ -80,5 +109,5 @@ export function AdjustmentControls({ edits, onEditChange }: AdjustmentControlsPr
         </div>
       ))}
     </div>
-  )
+  );
 }

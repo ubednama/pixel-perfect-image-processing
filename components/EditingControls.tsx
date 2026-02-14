@@ -1,29 +1,34 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Button } from "@/components/ui/button"
-import { TransformControls } from "@/components/controls/transform-controls"
-import { AdjustmentControls } from "@/components/controls/adjustment-controls"
-import { EffectControls } from "@/components/controls/effect-controls"
-import { ResizeControls } from "@/components/controls/resize-controls"
+import { motion } from "framer-motion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { TransformControls } from "@/components/controls/transform-controls";
+import { AdjustmentControls } from "@/components/controls/adjustment-controls";
+import { EffectControls } from "@/components/controls/effect-controls";
+import { ResizeControls } from "@/components/controls/resize-controls";
 // TEMPORARILY COMMENTED OUT - Crop UI functionality disabled
 // import { CropControls } from "@/components/controls/crop-controls"
-import { Undo, Redo } from "lucide-react"
-import type { ImageEdits } from "@/types/image-edits"
+import { Undo, Redo } from "lucide-react";
+import type { ImageEdits } from "@/types/image-edits";
 
 interface EditingControlsProps {
-  edits: ImageEdits
-  onEditChange: (edits: Partial<ImageEdits>, action?: string) => void
-  originalImage: string
-  canUndo: boolean
-  canRedo: boolean
-  onUndo: () => void
-  onRedo: () => void
-  onZoomReset?: () => void
-  notifyOfChange?: () => void
-  onCropModeToggle?: (enabled: boolean) => void
-  cropMode?: boolean
+  edits: ImageEdits;
+  onEditChange: (edits: Partial<ImageEdits>, action?: string) => void;
+  originalImage: string;
+  canUndo: boolean;
+  canRedo: boolean;
+  onUndo: () => void;
+  onRedo: () => void;
+  onZoomReset?: () => void;
+  notifyOfChange?: () => void;
+  onCropModeToggle?: (enabled: boolean) => void;
+  cropMode?: boolean;
 }
 
 export function EditingControls({
@@ -42,31 +47,51 @@ export function EditingControls({
   const controlSections = [
     // TEMPORARILY COMMENTED OUT - Crop UI functionality disabled
     // { id: "crop", title: "Crop", component: CropControls, props: { onZoomReset, notifyOfChange, onCropModeToggle } },
-    { id: "transform", title: "Transform", component: TransformControls, props: { notifyOfChange } },
-    { id: "adjustments", title: "Adjustments", component: AdjustmentControls, props: { notifyOfChange } },
-    { id: "effects", title: "Effects", component: EffectControls, props: { notifyOfChange } },
-    { id: "resize", title: "Resize", component: ResizeControls, props: { notifyOfChange } },
-  ]
+    {
+      id: "transform",
+      title: "Transform",
+      component: TransformControls,
+      props: { notifyOfChange },
+    },
+    {
+      id: "adjustments",
+      title: "Adjustments",
+      component: AdjustmentControls,
+      props: { notifyOfChange },
+    },
+    {
+      id: "effects",
+      title: "Effects",
+      component: EffectControls,
+      props: { notifyOfChange },
+    },
+    {
+      id: "resize",
+      title: "Resize",
+      component: ResizeControls,
+      props: { notifyOfChange },
+    },
+  ];
 
   // TEMPORARILY COMMENTED OUT - Crop mode filtering disabled since crop UI is commented out
   // Filter sections based on crop mode
-  // const visibleSections = cropMode 
+  // const visibleSections = cropMode
   //   ? controlSections.filter(section => section.id === "crop")
   //   : controlSections
-  
+
   // Show all available sections (crop is already commented out above)
-  const visibleSections = controlSections
+  const visibleSections = controlSections;
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="sticky top-0 z-20 bg-card/95 backdrop-blur-md border-b border-border p-6 pb-4 shadow-sm">
+    <div className="flex h-full flex-col">
+      <div className="bg-card/95 border-border sticky top-0 z-20 border-b p-6 pb-4 shadow-sm backdrop-blur-md">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-foreground">
+            <h3 className="text-foreground text-lg font-semibold">
               Edit Controls
             </h3>
 
@@ -76,7 +101,7 @@ export function EditingControls({
                 size="sm"
                 onClick={onUndo}
                 disabled={!canUndo}
-                className="gap-1 h-8 px-3 bg-background/50 hover:bg-background/80 transition-all duration-200"
+                className="bg-background/50 hover:bg-background/80 h-8 gap-1 px-3 transition-all duration-200"
                 title="Undo last action"
               >
                 <Undo size={14} />
@@ -87,7 +112,7 @@ export function EditingControls({
                 size="sm"
                 onClick={onRedo}
                 disabled={!canRedo}
-                className="gap-1 h-8 px-3 bg-background/50 hover:bg-background/80 transition-all duration-200"
+                className="bg-background/50 hover:bg-background/80 h-8 gap-1 px-3 transition-all duration-200"
                 title="Redo last action"
               >
                 <Redo size={14} />
@@ -108,35 +133,42 @@ export function EditingControls({
             onCancel={() => onAppModeChange("editing")}
           />
         ) : ( */}
-          <Accordion type="multiple" defaultValue={["transform", "adjustments"]} className="space-y-3">
-            {visibleSections.map((section, index) => {
-              const Component = section.component
-              return (
-                <motion.div
-                  key={section.id}
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.2, delay: 0.05 * index }}
+        <Accordion
+          type="multiple"
+          defaultValue={["transform", "adjustments"]}
+          className="space-y-3"
+        >
+          {visibleSections.map((section, index) => {
+            const Component = section.component;
+            return (
+              <motion.div
+                key={section.id}
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.2, delay: 0.05 * index }}
+              >
+                <AccordionItem
+                  value={section.id}
+                  className="border-border bg-card/30 rounded-lg border"
                 >
-                  <AccordionItem value={section.id} className="border border-border rounded-lg bg-card/30">
-                    <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/50 rounded-t-lg">
-                      <span className="font-medium">{section.title}</span>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4">
-                      <Component
-                        edits={edits}
-                        onEditChange={onEditChange}
-                        originalImage={originalImage}
-                        {...(section.props || {})}
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
-                </motion.div>
-              )
-            })}
-          </Accordion>
+                  <AccordionTrigger className="hover:bg-muted/50 rounded-t-lg px-4 py-3 hover:no-underline">
+                    <span className="font-medium">{section.title}</span>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
+                    <Component
+                      edits={edits}
+                      onEditChange={onEditChange}
+                      originalImage={originalImage}
+                      {...(section.props || {})}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+              </motion.div>
+            );
+          })}
+        </Accordion>
         {/* )} */}
       </div>
     </div>
-  )
+  );
 }

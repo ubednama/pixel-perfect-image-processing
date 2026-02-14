@@ -1,31 +1,35 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import Image from "next/image"
+import { motion } from "framer-motion";
+import Image from "next/image";
 
 interface OriginalPreviewProps {
-  originalImage: string
-  zoom?: number
+  originalImage: string;
+  zoom?: number;
   viewportBounds?: {
-    x: number
-    y: number
-    width: number
-    height: number
-  }
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 }
 
-export function OriginalPreview({ originalImage, zoom = 1, viewportBounds }: OriginalPreviewProps) {
-  const showZoomIndicator = zoom > 1 && viewportBounds
+export function OriginalPreview({
+  originalImage,
+  zoom = 1,
+  viewportBounds,
+}: OriginalPreviewProps) {
+  const showZoomIndicator = zoom > 1 && viewportBounds;
 
   return (
-    <div className="p-6 h-full">
+    <div className="h-full p-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
       >
-        <h3 className="text-lg font-semibold mb-4 text-foreground">Original</h3>
-        <div className="relative aspect-square rounded-lg overflow-hidden bg-muted border border-border">
+        <h3 className="text-foreground mb-4 text-lg font-semibold">Original</h3>
+        <div className="bg-muted border-border relative aspect-square overflow-hidden rounded-lg border">
           <Image
             src={originalImage || "/placeholder.svg"}
             alt="Original image"
@@ -36,7 +40,7 @@ export function OriginalPreview({ originalImage, zoom = 1, viewportBounds }: Ori
 
           {showZoomIndicator && viewportBounds && (
             <div
-              className="absolute border-2 border-red-500 bg-red-500/20 pointer-events-none"
+              className="pointer-events-none absolute border-2 border-red-500 bg-red-500/20"
               style={{
                 left: `${viewportBounds.x * 100}%`,
                 top: `${viewportBounds.y * 100}%`,
@@ -46,10 +50,12 @@ export function OriginalPreview({ originalImage, zoom = 1, viewportBounds }: Ori
             />
           )}
         </div>
-        <p className="text-sm text-muted-foreground mt-3 text-center">
-          {showZoomIndicator ? `Zoomed ${Math.round(zoom * 100)}% • Red box shows viewport` : "Reference image"}
+        <p className="text-muted-foreground mt-3 text-center text-sm">
+          {showZoomIndicator
+            ? `Zoomed ${Math.round(zoom * 100)}% • Red box shows viewport`
+            : "Reference image"}
         </p>
       </motion.div>
     </div>
-  )
+  );
 }

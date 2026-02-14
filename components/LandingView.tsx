@@ -1,93 +1,102 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useCallback, useState } from "react"
-import { motion } from "framer-motion"
-import { Upload, ImageIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
+import { useCallback, useState } from "react";
+import { motion } from "framer-motion";
+import { Upload, ImageIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface LandingViewProps {
-  onImageUpload: (imageUrl: string, filename?: string) => void
+  onImageUpload: (imageUrl: string, filename?: string) => void;
 }
 
 export function LandingView({ onImageUpload }: LandingViewProps) {
-  const [isDragOver, setIsDragOver] = useState(false)
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const validateFile = (file: File): boolean => {
-    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif", "image/tiff"]
-    const maxSize = 10 * 1024 * 1024 // 10MB
+    const validTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "image/avif",
+      "image/tiff",
+    ];
+    const maxSize = 10 * 1024 * 1024; // 10MB
 
     if (!validTypes.includes(file.type)) {
-      toast.error("Invalid file type! Please upload JPEG, PNG, WebP, GIF, AVIF, or TIFF images.")
-      return false
+      toast.error(
+        "Invalid file type! Please upload JPEG, PNG, WebP, GIF, AVIF, or TIFF images."
+      );
+      return false;
     }
 
     if (file.size > maxSize) {
-      toast.error("File too large! Maximum size is 10MB.")
-      return false
+      toast.error("File too large! Maximum size is 10MB.");
+      return false;
     }
 
-    return true
-  }
+    return true;
+  };
 
   const handleFileUpload = useCallback(
     (file: File) => {
-      if (!validateFile(file)) return
+      if (!validateFile(file)) return;
 
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onload = (e) => {
-        const result = e.target?.result as string
-        onImageUpload(result, file.name)
-        toast.success("Image loaded successfully!")
-      }
-      reader.readAsDataURL(file)
+        const result = e.target?.result as string;
+        onImageUpload(result, file.name);
+        toast.success("Image loaded successfully!");
+      };
+      reader.readAsDataURL(file);
     },
-    [onImageUpload],
-  )
+    [onImageUpload]
+  );
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
-      e.preventDefault()
-      setIsDragOver(false)
+      e.preventDefault();
+      setIsDragOver(false);
 
-      const files = Array.from(e.dataTransfer.files)
+      const files = Array.from(e.dataTransfer.files);
       if (files.length > 0) {
-        handleFileUpload(files[0])
+        handleFileUpload(files[0]);
       }
     },
-    [handleFileUpload],
-  )
+    [handleFileUpload]
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragOver(true)
-  }, [])
+    e.preventDefault();
+    setIsDragOver(true);
+  }, []);
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragOver(false)
-  }, [])
+    e.preventDefault();
+    setIsDragOver(false);
+  }, []);
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = e.target.files
+      const files = e.target.files;
       if (files && files.length > 0) {
-        handleFileUpload(files[0])
+        handleFileUpload(files[0]);
       }
     },
-    [handleFileUpload],
-  )
+    [handleFileUpload]
+  );
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-gradient-to-br from-background via-background to-muted/10">
+    <div className="from-background via-background to-muted/10 flex min-h-screen flex-col items-center justify-center bg-linear-to-br p-8">
       {/* Header Content */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="text-center mb-12 max-w-2xl"
+        className="mb-12 max-w-2xl text-center"
       >
         {/* Logo */}
         <motion.div
@@ -96,21 +105,22 @@ export function LandingView({ onImageUpload }: LandingViewProps) {
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
           className="mb-8 flex justify-center"
         >
-          <img 
-            src="/logo.svg" 
-            alt="Pixel Perfect Logo" 
-            className="w-24 h-24 md:w-32 md:h-32"
+          <img
+            src="/logo.svg"
+            alt="Pixel Perfect Logo"
+            className="h-24 w-24 md:h-32 md:w-32"
           />
         </motion.div>
-        
-        <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+
+        <h1 className="from-foreground to-foreground/80 mb-4 bg-linear-to-r bg-clip-text text-5xl font-bold text-transparent md:text-6xl">
           Pixel Perfect
         </h1>
-        <h2 className="text-xl md:text-2xl font-medium mb-3 text-muted-foreground">
+        <h2 className="text-muted-foreground mb-3 text-xl font-medium md:text-2xl">
           Your Instant Image Editing Destination.
         </h2>
-        <p className="text-base text-muted-foreground leading-relaxed">
-          Free, fast, and entirely in your browser. No uploads, no accounts. Just pure editing power.
+        <p className="text-muted-foreground text-base leading-relaxed">
+          Free, fast, and entirely in your browser. No uploads, no accounts.
+          Just pure editing power.
         </p>
       </motion.div>
 
@@ -125,14 +135,11 @@ export function LandingView({ onImageUpload }: LandingViewProps) {
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
-          className={`
-            relative border-2 border-dashed rounded-xl p-10 text-center transition-all duration-200 ease-out
-            ${
-              isDragOver
-                ? "border-primary bg-primary/5 shadow-md"
-                : "border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/10"
-            }
-          `}
+          className={`relative rounded-xl border-2 border-dashed p-10 text-center transition-all duration-200 ease-out ${
+            isDragOver
+              ? "border-primary bg-primary/5 shadow-md"
+              : "border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/10"
+          } `}
         >
           <input
             aria-label="Upload image file"
@@ -140,11 +147,11 @@ export function LandingView({ onImageUpload }: LandingViewProps) {
             type="file"
             accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/tiff"
             onChange={handleFileSelect}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
           />
 
           <div className="flex flex-col items-center space-y-4">
-            <div className="p-4 rounded-full bg-primary/10 border border-primary/20">
+            <div className="bg-primary/10 border-primary/20 rounded-full border p-4">
               {isDragOver ? (
                 <ImageIcon size={32} className="text-primary" />
               ) : (
@@ -156,10 +163,12 @@ export function LandingView({ onImageUpload }: LandingViewProps) {
               <Button size="lg" className="px-6 py-2 font-medium">
                 Upload Image
               </Button>
-              <p className="text-muted-foreground text-sm">or drag and drop here</p>
+              <p className="text-muted-foreground text-sm">
+                or drag and drop here
+              </p>
             </div>
 
-            <div className="text-xs text-muted-foreground space-y-1">
+            <div className="text-muted-foreground space-y-1 text-xs">
               <p>Supports JPEG, PNG, WebP, GIF, AVIF, TIFF</p>
               <p>Max 10MB</p>
             </div>
@@ -167,5 +176,5 @@ export function LandingView({ onImageUpload }: LandingViewProps) {
         </div>
       </motion.div>
     </div>
-  )
+  );
 }

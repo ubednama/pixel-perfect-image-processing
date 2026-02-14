@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 export function CustomCursor() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -16,7 +16,7 @@ export function CustomCursor() {
       return (
         "ontouchstart" in window ||
         navigator.maxTouchPoints > 0 ||
-        // @ts-ignore
+        // @ts-expect-error - msMaxTouchPoints is non-standard property
         navigator.msMaxTouchPoints > 0
       );
     };
@@ -28,9 +28,9 @@ export function CustomCursor() {
 
     // Hide default cursor globally
     document.body.style.cursor = "none";
-    
+
     // Add global CSS to hide cursor everywhere
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       *, *::before, *::after {
         cursor: none !important;
@@ -70,7 +70,7 @@ export function CustomCursor() {
 
   return (
     <div
-      className="fixed pointer-events-none z-[9999] transition-opacity duration-150"
+      className="pointer-events-none fixed z-9999 transition-opacity duration-150"
       style={{
         left: position.x - 6,
         top: position.y - 6,
@@ -78,15 +78,14 @@ export function CustomCursor() {
       }}
     >
       <div
-        className={`w-3 h-3 rounded-full transition-all duration-150 ${
-          theme === "dark" 
-            ? "bg-white/90 shadow-lg" 
-            : "bg-black/90 shadow-lg"
+        className={`h-3 w-3 rounded-full transition-all duration-150 ${
+          theme === "dark" ? "bg-white/90 shadow-lg" : "bg-black/90 shadow-lg"
         }`}
         style={{
-          boxShadow: theme === "dark" 
-            ? "0 0 0 1px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2)" 
-            : "0 0 0 1px rgba(255, 255, 255, 0.3), 0 2px 8px rgba(0, 0, 0, 0.1)"
+          boxShadow:
+            theme === "dark"
+              ? "0 0 0 1px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2)"
+              : "0 0 0 1px rgba(255, 255, 255, 0.3), 0 2px 8px rgba(0, 0, 0, 0.1)",
         }}
       />
     </div>

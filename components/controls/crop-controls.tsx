@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Crop, RotateCcw } from "lucide-react"
-import type { ImageEdits } from "@/types/image-edits"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Crop, RotateCcw } from "lucide-react";
+import type { ImageEdits } from "@/types/image-edits";
 
 interface CropControlsProps {
-  edits: ImageEdits
-  onEditChange: (edits: Partial<ImageEdits>, action?: string) => void
-  originalImage: string
-  onZoomReset?: () => void
-  onCancel?: () => void
-  onCropModeEnter?: () => void
-  onCropModeToggle?: (enabled: boolean) => void
+  edits: ImageEdits;
+  onEditChange: (edits: Partial<ImageEdits>, action?: string) => void;
+  originalImage: string;
+  onZoomReset?: () => void;
+  onCancel?: () => void;
+  onCropModeEnter?: () => void;
+  onCropModeToggle?: (enabled: boolean) => void;
 }
 
 export function CropControls({
@@ -24,20 +24,20 @@ export function CropControls({
   onCropModeEnter,
   onCropModeToggle,
 }: CropControlsProps) {
-  const [cropMode, setCropMode] = useState(false)
+  const [cropMode, setCropMode] = useState(false);
 
   const handleActivateCrop = () => {
     if (onZoomReset) {
-      onZoomReset()
+      onZoomReset();
     }
-    setCropMode(true)
+    setCropMode(true);
     if (onCropModeEnter) {
-      onCropModeEnter()
+      onCropModeEnter();
     }
     if (onCropModeToggle) {
-      onCropModeToggle(true)
+      onCropModeToggle(true);
     }
-  }
+  };
 
   const handleResetCrop = () => {
     onEditChange(
@@ -50,27 +50,31 @@ export function CropControls({
           enabled: false,
         },
       },
-      "Reset crop",
-    )
-  }
+      "Reset crop"
+    );
+  };
 
   return (
     <div className="space-y-4">
       {/* Normal crop controls */}
       <div className="flex gap-2">
-        <Button onClick={handleActivateCrop} className="flex-1 gap-2 bg-transparent" variant="outline">
+        <Button
+          onClick={handleActivateCrop}
+          className="flex-1 gap-2 bg-transparent"
+          variant="outline"
+        >
           <Crop size={16} />
           Crop
         </Button>
         <Button
           onClick={handleResetCrop}
           disabled={!edits.crop.enabled}
-          className="h-10 w-10 p-0 bg-transparent"
+          className="h-10 w-10 bg-transparent p-0"
           variant="outline"
         >
           <RotateCcw size={16} />
         </Button>
       </div>
     </div>
-  )
+  );
 }

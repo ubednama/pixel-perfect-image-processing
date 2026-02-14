@@ -1,0 +1,33 @@
+# Dependencies
+node_modules
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Build outputs
+.next
+out
+build
+dist
+
+# IDE
+.vscode
+.idea
+
+# Misc
+*.log
+.DS_Store
+.env
+.env.local
+.env*.local
+
+# Test coverage
+coverage
+
+# Temporary files
+*.tmp
+*.temp
+PERFORMANCE_OPTIMIZATIONS.md
+
+# External libraries (shadcn/ui)
+components/ui/

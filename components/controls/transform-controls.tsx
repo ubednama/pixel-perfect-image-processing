@@ -1,59 +1,75 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
-import { Switch } from "@/components/ui/switch"
-import { RotateCcw, FlipHorizontal, FlipVertical, RotateCw } from "lucide-react"
-import type { ImageEdits } from "@/types/image-edits"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import {
+  RotateCcw,
+  FlipHorizontal,
+  FlipVertical,
+  RotateCw,
+} from "lucide-react";
+import type { ImageEdits } from "@/types/image-edits";
 
 interface TransformControlsProps {
-  edits: ImageEdits
-  onEditChange: (edits: Partial<ImageEdits>, action?: string) => void
+  edits: ImageEdits;
+  onEditChange: (edits: Partial<ImageEdits>, action?: string) => void;
 }
 
-export function TransformControls({ edits, onEditChange }: TransformControlsProps) {
+export function TransformControls({
+  edits,
+  onEditChange,
+}: TransformControlsProps) {
   const handleRotationChange = (value: number[]) => {
-    onEditChange({ rotation: value[0] }, "Adjusted rotation")
-  }
+    onEditChange({ rotation: value[0] }, "Adjusted rotation");
+  };
 
-  const handleRotationInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number.parseInt(e.target.value) || 0
-    const clampedValue = Math.max(-180, Math.min(180, value))
-    onEditChange({ rotation: clampedValue }, "Set rotation value")
-  }
+  const handleRotationInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = Number.parseInt(e.target.value) || 0;
+    const clampedValue = Math.max(-180, Math.min(180, value));
+    onEditChange({ rotation: clampedValue }, "Set rotation value");
+  };
 
   const resetRotation = () => {
-    onEditChange({ rotation: 0 }, "Reset rotation")
-  }
+    onEditChange({ rotation: 0 }, "Reset rotation");
+  };
 
   const handleFlipHorizontal = () => {
-    onEditChange({ flipHorizontal: !edits.flipHorizontal }, "Flipped horizontally")
-  }
+    onEditChange(
+      { flipHorizontal: !edits.flipHorizontal },
+      "Flipped horizontally"
+    );
+  };
 
   const handleFlipVertical = () => {
-    onEditChange({ flipVertical: !edits.flipVertical }, "Flipped vertically")
-  }
+    onEditChange({ flipVertical: !edits.flipVertical }, "Flipped vertically");
+  };
 
   const resetFlips = () => {
-    onEditChange({ flipHorizontal: false, flipVertical: false }, "Reset flips")
-  }
+    onEditChange({ flipHorizontal: false, flipVertical: false }, "Reset flips");
+  };
 
   const handleAutoOrientToggle = (checked: boolean) => {
-    onEditChange({ autoOrient: checked }, checked ? "Enabled auto-orientation" : "Disabled auto-orientation")
-  }
+    onEditChange(
+      { autoOrient: checked },
+      checked ? "Enabled auto-orientation" : "Disabled auto-orientation"
+    );
+  };
 
   const resetAutoOrient = () => {
-    onEditChange({ autoOrient: false }, "Reset auto-orientation")
-  }
+    onEditChange({ autoOrient: false }, "Reset auto-orientation");
+  };
 
   const rotateBy90 = (degrees: number) => {
-    const newRotation = (edits.rotation + degrees) % 360
-    onEditChange({ rotation: newRotation }, `Rotated by ${degrees}°`)
-  }
+    const newRotation = (edits.rotation + degrees) % 360;
+    onEditChange({ rotation: newRotation }, `Rotated by ${degrees}°`);
+  };
 
   return (
     <div className="space-y-6">
@@ -61,13 +77,16 @@ export function TransformControls({ edits, onEditChange }: TransformControlsProp
       <div className="flex items-center justify-between">
         <Label className="text-sm font-medium">Auto-Orient</Label>
         <div className="flex items-center gap-2">
-          <Switch checked={edits.autoOrient} onCheckedChange={handleAutoOrientToggle} />
+          <Switch
+            checked={edits.autoOrient}
+            onCheckedChange={handleAutoOrientToggle}
+          />
           <Button
             variant="outline"
             size="sm"
             onClick={resetAutoOrient}
             disabled={!edits.autoOrient}
-            className="h-8 w-8 p-0 bg-transparent"
+            className="h-8 w-8 bg-transparent p-0"
           >
             <RotateCcw size={14} />
           </Button>
@@ -140,22 +159,32 @@ export function TransformControls({ edits, onEditChange }: TransformControlsProp
             size="sm"
             onClick={resetFlips}
             disabled={!edits.flipHorizontal && !edits.flipVertical}
-            className="h-8 w-8 p-0 bg-transparent"
+            className="h-8 w-8 bg-transparent p-0"
           >
             <RotateCcw size={14} />
           </Button>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleFlipHorizontal} className="flex-1 gap-2 bg-transparent">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleFlipHorizontal}
+            className="flex-1 gap-2 bg-transparent"
+          >
             <FlipHorizontal size={16} />
             Horizontal
           </Button>
-          <Button variant="outline" size="sm" onClick={handleFlipVertical} className="flex-1 gap-2 bg-transparent">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleFlipVertical}
+            className="flex-1 gap-2 bg-transparent"
+          >
             <FlipVertical size={16} />
             Vertical
           </Button>
         </div>
-        <div className="text-xs text-muted-foreground">
+        <div className="text-muted-foreground text-xs">
           Current: {edits.flipHorizontal ? "H" : ""}
           {edits.flipHorizontal && edits.flipVertical ? " + " : ""}
           {edits.flipVertical ? "V" : ""}
@@ -163,5 +192,5 @@ export function TransformControls({ edits, onEditChange }: TransformControlsProp
         </div>
       </div>
     </div>
-  )
+  );
 }

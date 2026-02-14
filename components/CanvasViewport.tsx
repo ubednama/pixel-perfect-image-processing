@@ -8,7 +8,13 @@ import { Button } from "@/components/ui/button";
 import { FilterOverlay } from "@/components/FilterOverlay";
 import { CropOverlayOnCanvas } from "@/components/CropOverlayOnCanvas";
 import type { ImageEdits } from "@/types/image-edits";
-import { processImageWithSharp, hasImageEdits, hasNonCropEdits, hasOnlyLiveAdjustments, hasServerSideEdits } from "@/lib/image-processing";
+import {
+  processImageWithSharp,
+  hasImageEdits,
+  hasNonCropEdits,
+  hasOnlyLiveAdjustments,
+  hasServerSideEdits,
+} from "@/lib/image-processing";
 
 interface CanvasViewportProps {
   image: string;
@@ -143,12 +149,12 @@ export function CanvasViewport({
 
       // Use Sharp API for processing server-side edits (rotation, flip, blur, etc.)
       const result = await processImageWithSharp(image, edits);
-      
+
       if (result.success && result.imageUrl) {
         setProcessedImageUrl(result.imageUrl);
         onImageUpdate(result.imageUrl);
       } else {
-        throw new Error(result.error || 'Failed to process image');
+        throw new Error(result.error || "Failed to process image");
       }
 
       setImageLoaded(true);
@@ -261,21 +267,29 @@ export function CanvasViewport({
 
     // Build transform string from edits
     const transforms: string[] = [];
-    
+
     // Apply zoom and rotation scaling to maintain consistent size
     let effectiveZoom = zoom;
-    if (edits.rotation !== 0 && originalImageDimensions.width && originalImageDimensions.height) {
+    if (
+      edits.rotation !== 0 &&
+      originalImageDimensions.width &&
+      originalImageDimensions.height
+    ) {
       const { rotationScale } = calculateImageTransforms(
-        originalImageDimensions.width, 
+        originalImageDimensions.width,
         originalImageDimensions.height
       );
       // Use rotation scale to compensate for rotation-induced size changes
-      effectiveZoom = zoom * (rotationScale / (Math.min(
-        viewportDimensions.width / originalImageDimensions.width,
-        viewportDimensions.height / originalImageDimensions.height
-      ) * 0.9));
+      effectiveZoom =
+        zoom *
+        (rotationScale /
+          (Math.min(
+            viewportDimensions.width / originalImageDimensions.width,
+            viewportDimensions.height / originalImageDimensions.height
+          ) *
+            0.9));
     }
-    
+
     transforms.push(`scale(${effectiveZoom})`);
     if (edits.rotation !== 0) {
       transforms.push(`rotate(${edits.rotation}deg)`);
@@ -318,7 +332,7 @@ export function CanvasViewport({
   return (
     <div
       ref={viewportRef}
-      className="w-full h-full bg-gradient-to-br from-muted/5 to-muted/15 rounded-xl border border-border/30 relative overflow-hidden canvas-viewport shadow-sm"
+      className="from-muted/5 to-muted/15 border-border/30 canvas-viewport relative h-full w-full overflow-hidden rounded-xl border bg-linear-to-br shadow-sm"
       data-canvas-area="true"
       style={{ minHeight: "600px", cursor: "none" }}
       onMouseEnter={handleCanvasMouseEnter}
@@ -330,7 +344,7 @@ export function CanvasViewport({
         <img
           src={image || "/placeholder.svg"}
           alt="Preview"
-          className="max-w-full max-h-full object-contain pointer-events-none transition-all duration-200 ease-out"
+          className="pointer-events-none max-h-full max-w-full object-contain transition-all duration-200 ease-out"
           style={{
             opacity: imageLoaded ? 1 : 0.8,
             transition: "opacity 0.15s ease-out, transform 0.1s ease-out",
@@ -356,7 +370,7 @@ export function CanvasViewport({
           onClick={() => setShowFilterOverlay(true)}
           variant="outline"
           size="sm"
-          className="bg-background/95 backdrop-blur-md border-border/60 hover:bg-muted/95 hover:border-border/80 transition-all duration-150 shadow-lg hover:shadow-xl"
+          className="bg-background/95 border-border/60 hover:bg-muted/95 hover:border-border/80 shadow-lg backdrop-blur-md transition-all duration-150 hover:shadow-xl"
         >
           Filters
         </Button>
@@ -370,11 +384,13 @@ export function CanvasViewport({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="absolute inset-0 flex items-center justify-center bg-background/30 backdrop-blur-md"
+            className="bg-background/30 absolute inset-0 flex items-center justify-center backdrop-blur-md"
           >
-            <div className="flex items-center gap-3 bg-background/95 backdrop-blur-md rounded-xl px-6 py-3 border border-border/60 shadow-lg">
-              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm font-medium text-foreground">Processing...</span>
+            <div className="bg-background/95 border-border/60 flex items-center gap-3 rounded-xl border px-6 py-3 shadow-lg backdrop-blur-md">
+              <div className="border-primary h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
+              <span className="text-foreground text-sm font-medium">
+                Processing...
+              </span>
             </div>
           </motion.div>
         )}
@@ -388,23 +404,25 @@ export function CanvasViewport({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.1 }}
-            className="absolute top-6 left-6 bg-background/95 backdrop-blur-md rounded-xl px-4 py-2 border border-border/60 shadow-lg"
+            className="bg-background/95 border-border/60 absolute top-6 left-6 rounded-xl border px-4 py-2 shadow-lg backdrop-blur-md"
           >
-            <span className="text-sm font-medium text-foreground">Original</span>
+            <span className="text-foreground text-sm font-medium">
+              Original
+            </span>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Zoom indicator */}
-      <div className="absolute bottom-6 left-6 bg-background/95 backdrop-blur-md rounded-xl px-4 py-2 border border-border/60 shadow-lg">
-        <span className="text-xs font-medium text-foreground">
+      <div className="bg-background/95 border-border/60 absolute bottom-6 left-6 rounded-xl border px-4 py-2 shadow-lg backdrop-blur-md">
+        <span className="text-foreground text-xs font-medium">
           {Math.round(zoom * 100)}%
         </span>
       </div>
 
       {/* Scroll hint */}
-      <div className="absolute bottom-6 right-6 bg-background/95 backdrop-blur-md rounded-xl px-4 py-2 border border-border/60 shadow-lg">
-        <span className="text-xs text-muted-foreground">Scroll to zoom</span>
+      <div className="bg-background/95 border-border/60 absolute right-6 bottom-6 rounded-xl border px-4 py-2 shadow-lg backdrop-blur-md">
+        <span className="text-muted-foreground text-xs">Scroll to zoom</span>
       </div>
 
       <FilterOverlay

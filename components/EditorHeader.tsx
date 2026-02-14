@@ -37,7 +37,9 @@ interface EditorHeaderProps {
   onBeforeAfterToggle?: (showOriginal: boolean) => void;
   targetKB?: number;
   exportFormat?: "png" | "jpeg" | "webp" | "avif" | "tiff" | "gif" | "original";
-  onExportFormatChange?: (format: "png" | "jpeg" | "webp" | "avif" | "tiff" | "gif" | "original") => void;
+  onExportFormatChange?: (
+    format: "png" | "jpeg" | "webp" | "avif" | "tiff" | "gif" | "original"
+  ) => void;
   notifyOfChange?: () => void;
   onImageSelect?: (imageUrl: string, filename?: string) => void;
   originalFilename?: string | null;
@@ -258,9 +260,9 @@ export function EditorHeader({
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2 }}
-        className="h-16 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-40 flex items-center"
+        className="border-border bg-background/80 sticky top-0 z-40 flex h-16 items-center border-b backdrop-blur-sm"
       >
-        <div className="flex items-center justify-between h-full w-full px-6">
+        <div className="flex h-full w-full items-center justify-between px-6">
           {/* Left group: Title, New Image, Hold to Compare */}
           <div className="flex items-center gap-3">
             {/* Logo and Title */}
@@ -270,12 +272,12 @@ export function EditorHeader({
               transition={{ duration: 0.2, delay: 0.05 }}
               className="flex items-center gap-3"
             >
-              <img 
-                src="/logo.svg" 
-                alt="Pixel Perfect Logo" 
-                className="w-8 h-8"
+              <img
+                src="/logo.svg"
+                alt="Pixel Perfect Logo"
+                className="h-8 w-8"
               />
-              <h1 className="text-2xl font-bold bg-linear-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              <h1 className="from-foreground to-foreground/70 bg-linear-to-r bg-clip-text text-2xl font-bold text-transparent">
                 Pixel Perfect
               </h1>
             </motion.div>
@@ -285,7 +287,7 @@ export function EditorHeader({
               variant="outline"
               size="sm"
               onClick={handleNewImageClick}
-              className="gap-2 bg-transparent h-8"
+              className="h-8 gap-2 bg-transparent"
             >
               <Upload size={16} />
               New Image
@@ -296,14 +298,14 @@ export function EditorHeader({
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: isPristine ? 0.5 : 1 }}
               transition={{ duration: 0.2 }}
-              className="h-full flex items-center justify-center"
+              className="flex h-full items-center justify-center"
             >
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleBeforeAfterMouseDown}
                 disabled={isPristine}
-                className="gap-2 bg-transparent select-none h-8"
+                className="h-8 gap-2 bg-transparent select-none"
                 onMouseUp={handleBeforeAfterMouseUp}
                 onMouseLeave={handleBeforeAfterMouseUp}
               >
@@ -330,7 +332,7 @@ export function EditorHeader({
                 size="sm"
                 onClick={onSaveChanges}
                 disabled={!hasUnsavedChanges || !processedImageUrl}
-                className="gap-2 bg-transparent h-8"
+                className="h-8 gap-2 bg-transparent"
               >
                 <Save size={16} />
                 Save Changes
@@ -347,7 +349,7 @@ export function EditorHeader({
                 size="sm"
                 onClick={handleReset}
                 disabled={isPristine}
-                className="gap-2 bg-transparent h-8"
+                className="h-8 gap-2 bg-transparent"
               >
                 <RotateCcw size={16} />
                 Reset All
@@ -363,11 +365,18 @@ export function EditorHeader({
                 value={exportFormat}
                 onValueChange={(value) =>
                   onExportFormatChange?.(
-                    value as "png" | "jpeg" | "webp" | "avif" | "tiff" | "gif" | "original"
+                    value as
+                      | "png"
+                      | "jpeg"
+                      | "webp"
+                      | "avif"
+                      | "tiff"
+                      | "gif"
+                      | "original"
                   )
                 }
               >
-                <SelectTrigger className="w-24 h-8 bg-transparent border-border/50 text-xs">
+                <SelectTrigger className="border-border/50 h-8 w-24 bg-transparent text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -389,7 +398,7 @@ export function EditorHeader({
                 size="sm"
                 onClick={handleDownload}
                 disabled={!processedImageUrl}
-                className="gap-2 bg-transparent h-8"
+                className="h-8 gap-2 bg-transparent"
               >
                 <Download size={16} />
                 Download
@@ -410,7 +419,7 @@ export function EditorHeader({
               current edits will be lost.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="flex gap-3 justify-end">
+          <div className="flex justify-end gap-3">
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmNewImage}>
               Proceed
