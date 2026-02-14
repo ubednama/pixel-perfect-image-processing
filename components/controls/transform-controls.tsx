@@ -1,19 +1,10 @@
 "use client";
 
-import type React from "react";
-
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import {
-  RotateCcw,
-  FlipHorizontal,
-  FlipVertical,
-  RotateCw,
-} from "lucide-react";
 import type { ImageEdits } from "@/types/image-edits";
+import { FlipHorizontal, FlipVertical, RotateCcw } from "lucide-react";
 
 interface TransformControlsProps {
   edits: ImageEdits;
@@ -24,22 +15,6 @@ export function TransformControls({
   edits,
   onEditChange,
 }: TransformControlsProps) {
-  const handleRotationChange = (value: number[]) => {
-    onEditChange({ rotation: value[0] }, "Adjusted rotation");
-  };
-
-  const handleRotationInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const value = Number.parseInt(e.target.value) || 0;
-    const clampedValue = Math.max(-180, Math.min(180, value));
-    onEditChange({ rotation: clampedValue }, "Set rotation value");
-  };
-
-  const resetRotation = () => {
-    onEditChange({ rotation: 0 }, "Reset rotation");
-  };
-
   const handleFlipHorizontal = () => {
     onEditChange(
       { flipHorizontal: !edits.flipHorizontal },
@@ -66,11 +41,6 @@ export function TransformControls({
     onEditChange({ autoOrient: false }, "Reset auto-orientation");
   };
 
-  const rotateBy90 = (degrees: number) => {
-    const newRotation = (edits.rotation + degrees) % 360;
-    onEditChange({ rotation: newRotation }, `Rotated by ${degrees}°`);
-  };
-
   return (
     <div className="space-y-6">
       {/* Auto-Orientation */}
@@ -94,7 +64,7 @@ export function TransformControls({
       </div>
 
       {/* Rotation - TEMPORARILY DISABLED DUE TO QUALITY DEGRADATION ISSUES */}
-      {/* 
+      {/*
       <div className="space-y-3">
         <Label className="text-sm font-medium">Rotate</Label>
         <div className="space-y-3">

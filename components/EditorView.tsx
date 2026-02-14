@@ -515,6 +515,7 @@ export function EditorView({
             showOriginal={showOriginal}
             cropMode={cropMode}
             onCropModeToggle={setCropMode}
+            processedImage={imageState.processedImageUrl}
           />
         </motion.div>
 

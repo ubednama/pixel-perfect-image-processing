@@ -25,6 +25,7 @@ interface CanvasViewportProps {
   notifyOfChange?: () => void;
   cropMode?: boolean;
   onCropModeToggle?: (enabled: boolean) => void;
+  processedImage?: string;
 }
 
 export function CanvasViewport({
@@ -37,6 +38,7 @@ export function CanvasViewport({
   notifyOfChange,
   cropMode = false,
   onCropModeToggle: _onCropModeToggle,
+  processedImage,
 }: CanvasViewportProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
 
@@ -55,6 +57,15 @@ export function CanvasViewport({
   const [isDragging, setIsDragging] = useState(false);
 
   const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Determine which image to display
+  // We show the processed image if:
+  // 1. We are NOT showing the original (Before/After view)
+  // 2. We are NOT in crop mode (need original to adjust crop box)
+  // 3. A processed image exists
+  const isShowingProcessed = !showOriginal && !cropMode && !!processedImage;
+  const activeImage =
+    isShowingProcessed && processedImage ? processedImage : image;
 
   useEffect(() => {
     const updateViewportDimensions = () => {
@@ -218,6 +229,19 @@ export function CanvasViewport({
       return { containerStyle: {}, imageStyle: {} };
     }
 
+    // If we are showing the processed image, NO filtering or transform should be applied via CSS
+    // because the image is already processed (baked).
+    // We only need to apply Zoom.
+    if (isShowingProcessed) {
+      return {
+        containerStyle: {
+          transform: `scale(${zoom})`,
+          transformOrigin: "center center",
+        },
+        imageStyle: { filter: "none" },
+      };
+    }
+
     const filters: string[] = [];
 
     // Build filter string from edits
@@ -313,6 +337,7 @@ export function CanvasViewport({
     originalImageDimensions,
     viewportDimensions,
     calculateImageTransforms,
+    isShowingProcessed,
   ]);
 
   const { containerStyle, imageStyle } = computeImageStyle();
@@ -341,7 +366,7 @@ export function CanvasViewport({
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={image || "/placeholder.svg"}
+            src={activeImage || "/placeholder.svg"}
             alt="Preview"
             className="pointer-events-none block max-h-full max-w-full object-contain"
             style={{
@@ -357,7 +382,7 @@ export function CanvasViewport({
                   height: img.naturalHeight,
                 });
               };
-              img.src = image;
+              img.src = activeImage || image;
             }}
           />
         </div>
