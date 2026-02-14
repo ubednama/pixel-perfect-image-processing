@@ -1,15 +1,15 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { CanvasViewport } from "@/components/CanvasViewport";
+import { EditingControls } from "@/components/EditingControls";
 import { EditorHeader } from "@/components/EditorHeader";
 import { OriginalPreview } from "@/components/OriginalPreview";
-import { EditingControls } from "@/components/EditingControls";
-import { CanvasViewport } from "@/components/CanvasViewport";
-import type { ImageEdits, ImageState, HistoryEntry } from "@/types/image-edits";
-import { useState, useEffect, useCallback } from "react";
-import { toast } from "sonner";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { HistoryEntry, ImageEdits, ImageState } from "@/types/image-edits";
+import { motion } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface EditorViewProps {
   uploadedImage: string;
@@ -203,24 +203,33 @@ export function EditorView({
     height: 1,
   });
   const [showOriginal, setShowOriginal] = useState(false);
-  const [hasEdits, setHasEdits] = useState(false);
   const [cropMode, setCropMode] = useState(false);
-  const [initialEditStack, setInitialEditStack] =
-    useState<ImageEdits>(defaultEdits);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Initialize history with the uploaded image
   useEffect(() => {
-    const initialEntry: HistoryEntry = {
-      action: "Initial image",
-      edits: defaultEdits,
-      baseImage: uploadedImage,
-      timestamp: Date.now(),
-    };
-    setHistory([initialEntry]);
-    setHistoryIndex(0);
-    setLastSavedImage(uploadedImage);
-  }, [uploadedImage]);
+    // Only initialize if we don't have a base image or if the uploaded image has changed
+    // and it's not the same as what we just saved (to avoid loop on save)
+    if (uploadedImage && uploadedImage !== imageState.baseImage) {
+      setImageState((prev) => ({
+        ...prev,
+        baseImage: uploadedImage,
+        originalImage: originalImage || uploadedImage, // Use provided original or fallback to upload
+        edits: defaultEdits,
+        processedImageUrl: "",
+      }));
+
+      const initialEntry: HistoryEntry = {
+        action: "Initial image",
+        edits: defaultEdits,
+        baseImage: uploadedImage,
+        timestamp: Date.now(),
+      };
+      setHistory([initialEntry]);
+      setHistoryIndex(0);
+      setLastSavedImage(uploadedImage);
+    }
+  }, [uploadedImage, originalImage, imageState.baseImage]);
 
   // Add to history function - rebuilt
   const addToHistory = useCallback(
@@ -283,16 +292,12 @@ export function EditorView({
     addToHistory("Reset all edits", defaultEdits);
   }, [addToHistory, lastSavedImage]);
 
-  const handleImageUpdate = useCallback(
-    (imageUrl: string) => {
-      setImageState((prev) => ({
-        ...prev,
-        processedImageUrl: imageUrl,
-      }));
-      onImageUpdate(imageUrl);
-    },
-    [onImageUpdate]
-  );
+  const handleImageUpdate = useCallback((imageUrl: string) => {
+    setImageState((prev) => ({
+      ...prev,
+      processedImageUrl: imageUrl,
+    }));
+  }, []);
 
   // Save changes - rebuilt to properly update base image
   const handleSaveChanges = useCallback(() => {
@@ -301,12 +306,15 @@ export function EditorView({
       return;
     }
 
+    const newBaseImage = imageState.processedImageUrl;
+
     // Update the last saved image and reset edits
-    setLastSavedImage(imageState.processedImageUrl);
+    setLastSavedImage(newBaseImage);
+
     setImageState((prev) => ({
       ...prev,
-      baseImage: prev.processedImageUrl,
-      originalImage: prev.processedImageUrl, // Update original image reference
+      baseImage: newBaseImage,
+      originalImage: newBaseImage, // Update original image reference to the new base
       edits: defaultEdits,
       processedImageUrl: "",
     }));
@@ -315,15 +323,18 @@ export function EditorView({
     const savedEntry: HistoryEntry = {
       action: "Saved changes as new base",
       edits: defaultEdits,
-      baseImage: imageState.processedImageUrl,
+      baseImage: newBaseImage,
       timestamp: Date.now(),
     };
     setHistory([savedEntry]);
     setHistoryIndex(0);
     setHasUnsavedChanges(false);
 
+    // Notify parent only on SAVE
+    onImageUpdate(newBaseImage);
+
     toast.success("Changes saved successfully");
-  }, [imageState.processedImageUrl]);
+  }, [imageState.processedImageUrl, onImageUpdate]);
 
   // Undo function - rebuilt
   const handleUndo = useCallback(() => {
@@ -456,7 +467,7 @@ export function EditorView({
             variant="ghost"
             size="sm"
             onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-            className="bg-background border-border hover:bg-muted absolute top-4 -right-3 z-10 h-8 w-8 rounded-full border p-0 shadow-md transition-all duration-200 hover:shadow-lg"
+            className="bg-background border-border hover:bg-muted absolute top-4 right-2 z-10 h-8 w-8 rounded-full border p-0 shadow-md transition-all duration-200 hover:shadow-lg"
             title={leftSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
             {leftSidebarOpen ? (

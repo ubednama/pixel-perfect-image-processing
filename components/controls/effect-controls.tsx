@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { RotateCcw } from "lucide-react";
 import type { ImageEdits } from "@/types/image-edits";
+import { RotateCcw } from "lucide-react";
 
 interface EffectControlsProps {
   edits: ImageEdits;
@@ -25,55 +25,85 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
   };
 
   const handleBlurChange = (value: number[]) => {
-    onEditChange({ blur: value[0] });
+    const percent = value[0];
+    const px = Number(((percent / 100) * 2).toFixed(1));
+    onEditChange({ blur: px });
+  };
+
+  const handleBlurInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const percent = Number.parseInt(e.target.value) || 0;
+    const clampedPercent = Math.max(0, Math.min(100, percent));
+    const px = Number(((clampedPercent / 100) * 2).toFixed(1));
+    onEditChange({ blur: px });
+  };
+
+  const getBlurPercent = () => {
+    return Math.min(100, Math.round((edits.blur / 2) * 100));
   };
 
   const handleSharpenChange = (value: number[]) => {
+    const percent = value[0];
+    const sigma = Number(((percent / 100) * 10).toFixed(1));
     onEditChange({
       sharpen: {
         ...edits.sharpen,
-        sigma: value[0],
-        enabled: value[0] > 0,
+        sigma: sigma,
+        enabled: sigma > 0,
       },
     });
+  };
+
+  const handleSharpenInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const percent = Number.parseInt(e.target.value) || 0;
+    const clampedPercent = Math.max(0, Math.min(100, percent));
+    const sigma = Number(((clampedPercent / 100) * 10).toFixed(1));
+    onEditChange({
+      sharpen: {
+        ...edits.sharpen,
+        sigma: sigma,
+        enabled: sigma > 0,
+      },
+    });
+  };
+
+  const getSharpenPercent = () => {
+    return Math.min(100, Math.round((edits.sharpen.sigma / 10) * 100));
+  };
+
+  const handleNoiseChange = (value: number[]) => {
+    const percent = value[0];
+    let median = 0;
+    if (percent === 0) median = 0;
+    else if (percent <= 25) median = 3;
+    else if (percent <= 50) median = 5;
+    else if (percent <= 75) median = 7;
+    else median = 9;
+
+    onEditChange({ median });
+  };
+
+  const handleNoiseInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const percent = Number.parseInt(e.target.value) || 0;
+    const clampedPercent = Math.max(0, Math.min(100, percent));
+    handleNoiseChange([clampedPercent]);
+  };
+
+  const getNoisePercent = () => {
+    if (edits.median <= 1) return 0;
+    if (edits.median <= 3) return 25;
+    if (edits.median <= 5) return 50;
+    if (edits.median <= 7) return 75;
+    return 100;
   };
 
   const handleGammaChange = (value: number[]) => {
     onEditChange({ gamma: value[0] });
   };
 
-  const handleMedianChange = (value: number[]) => {
-    onEditChange({ median: value[0] });
-  };
-
-  const handleBlurInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number.parseInt(e.target.value) || 0;
-    const clampedValue = Math.max(0, Math.min(20, value));
-    onEditChange({ blur: clampedValue });
-  };
-
-  const handleSharpenInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number.parseFloat(e.target.value) || 0;
-    const clampedValue = Math.max(0, Math.min(10, value));
-    onEditChange({
-      sharpen: {
-        ...edits.sharpen,
-        sigma: clampedValue,
-        enabled: clampedValue > 0,
-      },
-    });
-  };
-
   const handleGammaInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number.parseFloat(e.target.value) || 1;
     const clampedValue = Math.max(0.1, Math.min(3, value));
     onEditChange({ gamma: clampedValue });
-  };
-
-  const handleMedianInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number.parseInt(e.target.value) || 1;
-    const clampedValue = Math.max(1, Math.min(7, value));
-    onEditChange({ median: clampedValue });
   };
 
   const resetBlur = () => {
@@ -90,6 +120,10 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
     });
   };
 
+  const resetNoise = () => {
+    onEditChange({ median: 0 });
+  };
+
   const resetGrayscale = () => {
     onEditChange({ grayscale: false });
   };
@@ -100,10 +134,6 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
 
   const resetGamma = () => {
     onEditChange({ gamma: 1 });
-  };
-
-  const resetMedian = () => {
-    onEditChange({ median: 1 });
   };
 
   return (
@@ -150,23 +180,23 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
         <Label className="text-sm font-medium">Blur</Label>
         <div className="space-y-3">
           <Slider
-            value={[edits.blur]}
+            value={[getBlurPercent()]}
             onValueChange={handleBlurChange}
             min={0}
-            max={20}
+            max={100}
             step={1}
             className="w-full"
           />
           <div className="flex items-center gap-2">
             <Input
               type="number"
-              value={edits.blur}
+              value={getBlurPercent()}
               onChange={handleBlurInputChange}
               min={0}
-              max={20}
+              max={100}
               className="h-8 w-20 text-sm"
             />
-            <span className="text-muted-foreground text-sm">px</span>
+            <span className="text-muted-foreground text-sm">%</span>
             <Button
               variant="outline"
               size="sm"
@@ -185,29 +215,63 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
         <Label className="text-sm font-medium">Sharpen</Label>
         <div className="space-y-3">
           <Slider
-            value={[edits.sharpen.sigma]}
+            value={[getSharpenPercent()]}
             onValueChange={handleSharpenChange}
             min={0}
-            max={10}
-            step={0.1}
+            max={100}
+            step={1}
             className="w-full"
           />
           <div className="flex items-center gap-2">
             <Input
               type="number"
-              value={edits.sharpen.sigma}
+              value={getSharpenPercent()}
               onChange={handleSharpenInputChange}
               min={0}
-              max={10}
-              step={0.1}
+              max={100}
               className="h-8 w-20 text-sm"
             />
-            <span className="text-muted-foreground text-sm">σ</span>
+            <span className="text-muted-foreground text-sm">%</span>
             <Button
               variant="outline"
               size="sm"
               onClick={resetSharpen}
               disabled={edits.sharpen.sigma === 0}
+              className="h-8 w-8 bg-transparent p-0"
+            >
+              <RotateCcw size={14} />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Noise Reduction (formerly Median) */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">Noise Reduction</Label>
+        <div className="space-y-3">
+          <Slider
+            value={[getNoisePercent()]}
+            onValueChange={handleNoiseChange}
+            min={0}
+            max={100}
+            step={1}
+            className="w-full"
+          />
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              value={getNoisePercent()}
+              onChange={handleNoiseInputChange}
+              min={0}
+              max={100}
+              className="h-8 w-20 text-sm"
+            />
+            <span className="text-muted-foreground text-sm">%</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={resetNoise}
+              disabled={edits.median <= 1}
               className="h-8 w-8 bg-transparent p-0"
             >
               <RotateCcw size={14} />
@@ -244,42 +308,6 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
               size="sm"
               onClick={resetGamma}
               disabled={edits.gamma === 1}
-              className="h-8 w-8 bg-transparent p-0"
-            >
-              <RotateCcw size={14} />
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Median Filter */}
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">Median Filter</Label>
-        <div className="space-y-3">
-          <Slider
-            value={[edits.median]}
-            onValueChange={handleMedianChange}
-            min={1}
-            max={7}
-            step={2}
-            className="w-full"
-          />
-          <div className="flex items-center gap-2">
-            <Input
-              type="number"
-              value={edits.median}
-              onChange={handleMedianInputChange}
-              min={1}
-              max={7}
-              step={2}
-              className="h-8 w-20 text-sm"
-            />
-            <span className="text-muted-foreground text-sm">px</span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={resetMedian}
-              disabled={edits.median === 1}
               className="h-8 w-8 bg-transparent p-0"
             >
               <RotateCcw size={14} />

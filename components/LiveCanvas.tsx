@@ -1,10 +1,10 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useRef, useState, useCallback } from "react";
-import type { ImageEdits } from "@/types/image-edits";
 import { CropOverlay } from "@/components/CropOverlay";
-import { processImageWithSharp, hasImageEdits } from "@/lib/image-processing";
+import { hasImageEdits, processImageWithSharp } from "@/lib/image-processing";
+import type { ImageEdits } from "@/types/image-edits";
+import { AnimatePresence, motion } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface LiveCanvasProps {
   image: string;
@@ -27,12 +27,13 @@ export function LiveCanvas({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [processedImage, setProcessedImage] = useState<string>("");
+  // processedImage removed (unused)
+  // const [processedImage, setProcessedImage] = useState<string>("");
   const [imageLoaded, setImageLoaded] = useState(false);
-  const processingTimeoutRef = useRef<NodeJS.Timeout>();
+  const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [zoom, setZoom] = useState(1);
-  const [imageDimensions, setImageDimensions] = useState({
+  const [imageDimensions] = useState({
     width: 0,
     height: 0,
   });
@@ -79,8 +80,7 @@ export function LiveCanvas({
         displayWidth = containerDimensions.height * imageAspect;
       }
 
-      const scaleX = displayWidth / imageDimensions.width;
-      const scaleY = displayHeight / imageDimensions.height;
+      // Variables scaleX and scaleY removed as they were unused
 
       const viewportBounds = {
         x: Math.max(0, (1 - viewportWidth / displayWidth) / 2),
@@ -114,7 +114,7 @@ export function LiveCanvas({
     try {
       // If showing original or no edits, just use the original image
       if (showOriginal || !hasImageEdits(edits)) {
-        setProcessedImage(image);
+        // setProcessedImage(image);
         if (!showOriginal) {
           onImageUpdate(image);
         }
@@ -127,7 +127,7 @@ export function LiveCanvas({
       const result = await processImageWithSharp(image, edits);
 
       if (result.success && result.imageUrl) {
-        setProcessedImage(result.imageUrl);
+        // setProcessedImage(result.imageUrl);
         if (!showOriginal) {
           onImageUpdate(result.imageUrl);
         }
@@ -139,7 +139,7 @@ export function LiveCanvas({
     } catch (error) {
       console.error("Error processing image with Sharp:", error);
       // Fallback to original image on error
-      setProcessedImage(image);
+      // setProcessedImage(image);
       if (!showOriginal) {
         onImageUpdate(image);
       }
@@ -171,7 +171,7 @@ export function LiveCanvas({
     return () => container.removeEventListener("wheel", handleWheel);
   }, [handleWheel]);
 
-  const handleCropChange = useCallback((newEdits: Partial<ImageEdits>) => {
+  const handleCropChange = useCallback((_newEdits: Partial<ImageEdits>) => {
     // This will be passed down from the parent component
   }, []);
 
@@ -272,7 +272,7 @@ export function LiveCanvas({
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.05 }}
         transition={{ duration: 2, delay: 0.5 }}
-        className="from-primary/10 to-accent/10 pointer-events-none absolute inset-0 rounded-lg bg-gradient-to-br via-transparent"
+        className="from-primary/10 to-accent/10 pointer-events-none absolute inset-0 rounded-lg bg-linear-to-br via-transparent"
       />
     </div>
   );

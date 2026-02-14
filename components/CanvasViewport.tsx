@@ -1,20 +1,16 @@
 "use client";
 
-import type React from "react";
-
-import { useEffect, useRef, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { FilterOverlay } from "@/components/FilterOverlay";
 import { CropOverlayOnCanvas } from "@/components/CropOverlayOnCanvas";
-import type { ImageEdits } from "@/types/image-edits";
+import { FilterOverlay } from "@/components/FilterOverlay";
+import { Button } from "@/components/ui/button";
 import {
-  processImageWithSharp,
   hasImageEdits,
-  hasNonCropEdits,
   hasOnlyLiveAdjustments,
-  hasServerSideEdits,
+  processImageWithSharp,
 } from "@/lib/image-processing";
+import type { ImageEdits } from "@/types/image-edits";
+import { AnimatePresence, motion } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface CanvasViewportProps {
   image: string;
@@ -40,12 +36,9 @@ export function CanvasViewport({
   showOriginal = false,
   notifyOfChange,
   cropMode = false,
-  onCropModeToggle,
+  onCropModeToggle: _onCropModeToggle,
 }: CanvasViewportProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  // const imgRef = useRef<HTMLImageElement>(null);
 
   const [zoom, setZoom] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -60,9 +53,8 @@ export function CanvasViewport({
   });
   const [showFilterOverlay, setShowFilterOverlay] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [processedImageUrl, setProcessedImageUrl] = useState<string>("");
 
-  const processingTimeoutRef = useRef<NodeJS.Timeout>();
+  const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const updateViewportDimensions = () => {
@@ -130,28 +122,15 @@ export function CanvasViewport({
     try {
       // If showing original or no edits, just use the original image
       if (showOriginal || !hasImageEdits(edits)) {
-        setProcessedImageUrl(image);
         onImageUpdate(image);
         setImageLoaded(true);
         setIsProcessing(false);
         return;
       }
 
-      // Optimization: If only live adjustments (CSS filters), skip server processing
-      // The CSS filters in computeImageStyle will handle the visual changes
-      if (hasOnlyLiveAdjustments(edits)) {
-        setProcessedImageUrl(image);
-        onImageUpdate(image);
-        setImageLoaded(true);
-        setIsProcessing(false);
-        return;
-      }
-
-      // Use Sharp API for processing server-side edits (rotation, flip, blur, etc.)
       const result = await processImageWithSharp(image, edits);
 
       if (result.success && result.imageUrl) {
-        setProcessedImageUrl(result.imageUrl);
         onImageUpdate(result.imageUrl);
       } else {
         throw new Error(result.error || "Failed to process image");
@@ -161,8 +140,6 @@ export function CanvasViewport({
       setIsProcessing(false);
     } catch (error) {
       console.error("Error processing image with Sharp:", error);
-      // Fallback to original image on error
-      setProcessedImageUrl(image);
       onImageUpdate(image);
       setImageLoaded(true);
       setIsProcessing(false);
@@ -174,8 +151,6 @@ export function CanvasViewport({
       clearTimeout(processingTimeoutRef.current);
     }
 
-    // Use shorter timeout for live adjustments (≤100ms response time)
-    // Use longer timeout for server-side processing to reduce API calls
     const timeout = hasOnlyLiveAdjustments(edits) ? 50 : 300;
 
     processingTimeoutRef.current = setTimeout(() => {
@@ -206,7 +181,7 @@ export function CanvasViewport({
     }
   }, [zoom, originalImageDimensions, onZoomChange]);
 
-  const { scale, rotationScale } = calculateImageTransforms(
+  calculateImageTransforms(
     originalImageDimensions.width || 1,
     originalImageDimensions.height || 1
   );
@@ -238,9 +213,9 @@ export function CanvasViewport({
     }
   };
 
-  const computeImageStyle = useCallback((): React.CSSProperties => {
+  const computeImageStyle = useCallback(() => {
     if (showOriginal) {
-      return {};
+      return { containerStyle: {}, imageStyle: {} };
     }
 
     const filters: string[] = [];
@@ -323,11 +298,24 @@ export function CanvasViewport({
     }
 
     return {
-      filter: filters.length > 0 ? filters.join(" ") : "none",
-      transform: transforms.length > 0 ? transforms.join(" ") : "none",
-      transformOrigin: "center center",
+      containerStyle: {
+        transform: transforms.length > 0 ? transforms.join(" ") : "none",
+        transformOrigin: "center center",
+      },
+      imageStyle: {
+        filter: filters.length > 0 ? filters.join(" ") : "none",
+      },
     };
-  }, [edits, showOriginal, zoom, originalImageDimensions, viewportDimensions]);
+  }, [
+    edits,
+    showOriginal,
+    zoom,
+    originalImageDimensions,
+    viewportDimensions,
+    calculateImageTransforms,
+  ]);
+
+  const { containerStyle, imageStyle } = computeImageStyle();
 
   return (
     <div
@@ -340,29 +328,39 @@ export function CanvasViewport({
       onMouseDown={() => setIsDragging(true)}
       onMouseUp={() => setIsDragging(false)}
     >
-      <div className="absolute inset-0 flex items-center justify-center">
-        <img
-          src={image || "/placeholder.svg"}
-          alt="Preview"
-          className="pointer-events-none max-h-full max-w-full object-contain transition-all duration-200 ease-out"
+      <div className="absolute inset-0 flex items-center justify-center p-4">
+        <div
+          className="relative max-h-full max-w-full overflow-hidden shadow-2xl transition-all duration-200 ease-out"
           style={{
-            opacity: imageLoaded ? 1 : 0.8,
-            transition: "opacity 0.15s ease-out, transform 0.1s ease-out",
-            ...computeImageStyle(),
+            opacity: imageLoaded ? 1 : 0,
+            transform: isDragging
+              ? `${containerStyle.transform} scale(0.98)` // Merge dragging scale
+              : containerStyle.transform,
+            transformOrigin: containerStyle.transformOrigin,
           }}
-          onLoad={() => {
-            setImageLoaded(true);
-            // Get image dimensions for calculations
-            const img = new Image();
-            img.onload = () => {
-              setOriginalImageDimensions({
-                width: img.naturalWidth,
-                height: img.naturalHeight,
-              });
-            };
-            img.src = image;
-          }}
-        />
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={image || "/placeholder.svg"}
+            alt="Preview"
+            className="pointer-events-none block max-h-full max-w-full object-contain"
+            style={{
+              ...imageStyle,
+            }}
+            onLoad={() => {
+              setImageLoaded(true);
+              // Get image dimensions for calculations
+              const img = new Image();
+              img.onload = () => {
+                setOriginalImageDimensions({
+                  width: img.naturalWidth,
+                  height: img.naturalHeight,
+                });
+              };
+              img.src = image;
+            }}
+          />
+        </div>
       </div>
 
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2">

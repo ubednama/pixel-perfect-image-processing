@@ -1,6 +1,10 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { ColorControls } from "@/components/controls/color-controls";
+import { EffectControls } from "@/components/controls/effect-controls";
+import { LightControls } from "@/components/controls/light-controls";
+import { ResizeControls } from "@/components/controls/resize-controls";
+import { TransformControls } from "@/components/controls/transform-controls";
 import {
   Accordion,
   AccordionContent,
@@ -8,14 +12,9 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { TransformControls } from "@/components/controls/transform-controls";
-import { AdjustmentControls } from "@/components/controls/adjustment-controls";
-import { EffectControls } from "@/components/controls/effect-controls";
-import { ResizeControls } from "@/components/controls/resize-controls";
-// TEMPORARILY COMMENTED OUT - Crop UI functionality disabled
-// import { CropControls } from "@/components/controls/crop-controls"
-import { Undo, Redo } from "lucide-react";
 import type { ImageEdits } from "@/types/image-edits";
+import { motion } from "framer-motion";
+import { Redo, Undo } from "lucide-react";
 
 interface EditingControlsProps {
   edits: ImageEdits;
@@ -39,13 +38,12 @@ export function EditingControls({
   canRedo,
   onUndo,
   onRedo,
-  onZoomReset,
+  onZoomReset: _onZoomReset,
   notifyOfChange,
-  onCropModeToggle,
-  cropMode = false,
+  onCropModeToggle: _onCropModeToggle,
+  cropMode: _cropMode = false,
 }: EditingControlsProps) {
   const controlSections = [
-    // TEMPORARILY COMMENTED OUT - Crop UI functionality disabled
     // { id: "crop", title: "Crop", component: CropControls, props: { onZoomReset, notifyOfChange, onCropModeToggle } },
     {
       id: "transform",
@@ -54,14 +52,20 @@ export function EditingControls({
       props: { notifyOfChange },
     },
     {
-      id: "adjustments",
-      title: "Adjustments",
-      component: AdjustmentControls,
+      id: "light",
+      title: "Light",
+      component: LightControls,
+      props: { notifyOfChange },
+    },
+    {
+      id: "color",
+      title: "Color",
+      component: ColorControls,
       props: { notifyOfChange },
     },
     {
       id: "effects",
-      title: "Effects",
+      title: "Detail & Effects",
       component: EffectControls,
       props: { notifyOfChange },
     },
@@ -73,7 +77,6 @@ export function EditingControls({
     },
   ];
 
-  // TEMPORARILY COMMENTED OUT - Crop mode filtering disabled since crop UI is commented out
   // Filter sections based on crop mode
   // const visibleSections = cropMode
   //   ? controlSections.filter(section => section.id === "crop")
@@ -135,7 +138,7 @@ export function EditingControls({
         ) : ( */}
         <Accordion
           type="multiple"
-          defaultValue={["transform", "adjustments"]}
+          defaultValue={["transform", "light"]}
           className="space-y-3"
         >
           {visibleSections.map((section, index) => {
