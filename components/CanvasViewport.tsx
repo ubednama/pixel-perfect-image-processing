@@ -64,9 +64,6 @@ export function CanvasViewport({
   // 1. We are NOT showing the original (Before/After view)
   // 2. We are NOT in crop mode (need original to adjust crop box)
   // 3. A processed image exists
-  const isShowingProcessed = !showOriginal && !cropMode && !!processedImage;
-  const activeImage =
-    isShowingProcessed && processedImage ? processedImage : image;
 
   // Store the dimensions of the BASE image (unprocessed) for consistent CSS transform calculations
   const [baseDimensions, setBaseDimensions] = useState({
@@ -249,21 +246,18 @@ export function CanvasViewport({
     }
   };
 
-  const computeImageStyle = useCallback(() => {
-    if (showOriginal) {
-      return { containerStyle: {}, imageStyle: {} };
-    }
+  const [processedImageLoaded, setProcessedImageLoaded] = useState(false);
 
-    // If we are showing the processed image, NO filtering or transform should be applied via CSS
-    // because the image is already processed (baked).
-    // We only need to apply Zoom.
-    if (isShowingProcessed) {
+  // Reset processed image load state when URL changes
+  useEffect(() => {
+    setProcessedImageLoaded(false);
+  }, [processedImage]);
+
+  const computeBaseStyle = useCallback(() => {
+    if (showOriginal) {
       return {
-        containerStyle: {
-          transform: `scale(${zoom})`,
-          transformOrigin: "center center",
-        },
-        imageStyle: { filter: "none" },
+        transform: `scale(${zoom})`,
+        filter: "none",
       };
     }
 
@@ -292,15 +286,13 @@ export function CanvasViewport({
     // Build transform string from edits
     const transforms: string[] = [];
 
-    // Apply zoom and rotation scaling to maintain consistent size
+    // Apply zoom and rotation scaling
     let effectiveZoom = zoom;
-    // Use baseDimensions for consistent transforms of the base image
     if (edits.rotation !== 0 && baseDimensions.width && baseDimensions.height) {
       const { rotationScale } = calculateImageTransforms(
         baseDimensions.width,
         baseDimensions.height
       );
-      // Use rotation scale to compensate for rotation-induced size changes
       effectiveZoom =
         zoom *
         (rotationScale /
@@ -324,7 +316,6 @@ export function CanvasViewport({
 
     let scaleX = 1;
     let scaleY = 1;
-    // Use baseDimensions for calculating scale logic
     if (
       edits.width > 0 &&
       edits.height > 0 &&
@@ -345,25 +336,28 @@ export function CanvasViewport({
     }
 
     return {
-      containerStyle: {
-        transform: transforms.length > 0 ? transforms.join(" ") : "none",
-        transformOrigin: "center center",
-      },
-      imageStyle: {
-        filter: filters.length > 0 ? filters.join(" ") : "none",
-      },
+      transform: transforms.length > 0 ? transforms.join(" ") : "none",
+      filter: filters.length > 0 ? filters.join(" ") : "none",
     };
   }, [
     edits,
     showOriginal,
     zoom,
-    baseDimensions, // Use baseDimensions
+    baseDimensions,
     viewportDimensions,
     calculateImageTransforms,
-    isShowingProcessed,
   ]);
 
-  const { containerStyle, imageStyle } = computeImageStyle();
+  const computeProcessedStyle = useCallback(() => {
+    return {
+      transform: `scale(${zoom})`,
+      filter: "none",
+    };
+  }, [zoom]);
+
+  const baseStyle = computeBaseStyle();
+  const processedStyle = computeProcessedStyle();
+  const shouldShowProcessed = !showOriginal && !cropMode && !!processedImage;
 
   return (
     <div
@@ -377,57 +371,66 @@ export function CanvasViewport({
       onMouseUp={() => setIsDragging(false)}
     >
       <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-4">
-        <div
-          className="relative origin-center transition-all duration-200 ease-out"
+        {/* Base Image Layer (Optimistic UI) */}
+        {/* Always present but hidden when processed image is fully loaded to prevent double rendering */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={image || "/placeholder.svg"}
+          alt="Base Preview"
+          className="pointer-events-none absolute block origin-center object-contain transition-all duration-200 ease-out"
           style={{
-            opacity: imageLoaded ? 1 : 0,
+            ...baseStyle,
+            opacity:
+              shouldShowProcessed && processedImageLoaded
+                ? 0
+                : imageLoaded
+                  ? 1
+                  : 0,
             transform: isDragging
-              ? `${containerStyle.transform} scale(0.98)` // Merge dragging scale
-              : containerStyle.transform,
-            transformOrigin: containerStyle.transformOrigin,
+              ? `${baseStyle.transform} scale(0.98)`
+              : baseStyle.transform,
           }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          onLoad={() => setImageLoaded(true)}
+        />
+
+        {/* Processed Image Layer (Final Result) */}
+        {/* On top, fades in when ready */}
+        {shouldShowProcessed && (
+          /* eslint-disable-next-line @next/next/no-img-element */
           <img
-            src={activeImage || "/placeholder.svg"}
-            alt="Preview"
-            className="pointer-events-none block object-contain"
+            src={processedImage}
+            alt="Processed Preview"
+            className="pointer-events-none absolute block origin-center object-contain transition-all duration-200 ease-out"
             style={{
-              ...imageStyle,
+              ...processedStyle,
+              opacity: processedImageLoaded ? 1 : 0,
+              transform: isDragging
+                ? `${processedStyle.transform} scale(0.98)`
+                : processedStyle.transform,
             }}
             onLoad={(e) => {
-              setImageLoaded(true);
+              setProcessedImageLoaded(true);
               const img = e.currentTarget;
 
-              // On initial load, or when active image changes significantly, fit to screen
-              // But only if we haven't manually zoomed
+              // Auto-fit logic matches original logic
               if (viewportDimensions.width && viewportDimensions.height) {
                 const contentWidth = img.naturalWidth;
                 const contentHeight = img.naturalHeight;
-
-                // Calculate zoom to fit
-                const scaleX = (viewportDimensions.width - 64) / contentWidth; // 64px padding
+                const scaleX = (viewportDimensions.width - 64) / contentWidth;
                 const scaleY = (viewportDimensions.height - 64) / contentHeight;
                 const fitZoom = Math.min(scaleX, scaleY);
-
-                // If image is larger than viewport, or we are just starting, fit it.
-                // If image is smaller, show at 100% (zoom=1) to avoid pixelation, unless it is HUGE then fit.
-                // "Pixel Perfect" means 100% zoom = 1 image pixel = 1 screen pixel.
-                // So we default to fitZoom only if fitZoom < 1 (image is big).
-                // If image is small (fitZoom > 1), we stay at 1.
-
                 const targetZoom = fitZoom < 1 ? fitZoom : 1;
 
-                // We only auto-fit if we seemingly haven't "set" a zoom yet (zoom=1 default),
-                // or if effective dimensions changed drastically (like a resize).
-                // For now, let's just auto-fit on load if it's the first load or if we want to force fit.
-                if (zoom === 1 || !imageLoaded) {
+                // Only autofit on first load logic (shared with base) or significant change?
+                // Keeping simple: if this logic causes jumpiness, we might need to restrict it.
+                // For now, mirroring previous logic but only if zoom is default.
+                if (zoom === 1) {
                   setZoom(targetZoom);
                 }
               }
             }}
           />
-        </div>
+        )}
       </div>
 
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
