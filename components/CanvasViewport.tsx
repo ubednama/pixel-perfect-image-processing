@@ -11,6 +11,7 @@ import {
 import type { ImageEdits } from "@/types/image-edits";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 interface CanvasViewportProps {
   image: string;
@@ -66,6 +67,30 @@ export function CanvasViewport({
   const isShowingProcessed = !showOriginal && !cropMode && !!processedImage;
   const activeImage =
     isShowingProcessed && processedImage ? processedImage : image;
+
+  // Store the dimensions of the BASE image (unprocessed) for consistent CSS transform calculations
+  const [baseDimensions, setBaseDimensions] = useState({
+    width: 0,
+    height: 0,
+  });
+
+  // Load base image dimensions whenever the base image changes
+  useEffect(() => {
+    if (!image) return;
+    const img = new Image();
+    img.onload = () => {
+      setBaseDimensions({
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+      });
+      // Also init originalImageDimensions if not set (for safety)
+      setOriginalImageDimensions({
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+      });
+    };
+    img.src = image;
+  }, [image]);
 
   useEffect(() => {
     const updateViewportDimensions = () => {
@@ -151,6 +176,9 @@ export function CanvasViewport({
       setIsProcessing(false);
     } catch (error) {
       console.error("Error processing image with Sharp:", error);
+      toast.error(
+        "Failed to process image (likely too large). Showing original."
+      );
       onImageUpdate(image);
       setImageLoaded(true);
       setIsProcessing(false);
@@ -176,11 +204,8 @@ export function CanvasViewport({
   }, [processImage, edits]);
 
   useEffect(() => {
-    if (
-      onZoomChange &&
-      originalImageDimensions.width &&
-      originalImageDimensions.height
-    ) {
+    // Use baseDimensions for stable zoom calculation relation
+    if (onZoomChange && baseDimensions.width && baseDimensions.height) {
       // Red box indicator calculation: indicator_width = thumbnail_width / zoom_level
       const viewportBounds = {
         x: 0,
@@ -190,11 +215,11 @@ export function CanvasViewport({
       };
       onZoomChange(zoom, viewportBounds);
     }
-  }, [zoom, originalImageDimensions, onZoomChange]);
+  }, [zoom, baseDimensions, onZoomChange]);
 
   calculateImageTransforms(
-    originalImageDimensions.width || 1,
-    originalImageDimensions.height || 1
+    baseDimensions.width || 1,
+    baseDimensions.height || 1
   );
 
   // Reset zoom when entering crop mode
@@ -269,22 +294,19 @@ export function CanvasViewport({
 
     // Apply zoom and rotation scaling to maintain consistent size
     let effectiveZoom = zoom;
-    if (
-      edits.rotation !== 0 &&
-      originalImageDimensions.width &&
-      originalImageDimensions.height
-    ) {
+    // Use baseDimensions for consistent transforms of the base image
+    if (edits.rotation !== 0 && baseDimensions.width && baseDimensions.height) {
       const { rotationScale } = calculateImageTransforms(
-        originalImageDimensions.width,
-        originalImageDimensions.height
+        baseDimensions.width,
+        baseDimensions.height
       );
       // Use rotation scale to compensate for rotation-induced size changes
       effectiveZoom =
         zoom *
         (rotationScale /
           (Math.min(
-            viewportDimensions.width / originalImageDimensions.width,
-            viewportDimensions.height / originalImageDimensions.height
+            viewportDimensions.width / baseDimensions.width,
+            viewportDimensions.height / baseDimensions.height
           ) *
             0.9));
     }
@@ -302,22 +324,23 @@ export function CanvasViewport({
 
     let scaleX = 1;
     let scaleY = 1;
+    // Use baseDimensions for calculating scale logic
     if (
       edits.width > 0 &&
       edits.height > 0 &&
-      originalImageDimensions.width &&
-      originalImageDimensions.height
+      baseDimensions.width &&
+      baseDimensions.height
     ) {
       const targetWidth =
         edits.unit === "px"
           ? edits.width
-          : (edits.width / 100) * originalImageDimensions.width;
+          : (edits.width / 100) * baseDimensions.width;
       const targetHeight =
         edits.unit === "px"
           ? edits.height
-          : (edits.height / 100) * originalImageDimensions.height;
-      scaleX = targetWidth / originalImageDimensions.width;
-      scaleY = targetHeight / originalImageDimensions.height;
+          : (edits.height / 100) * baseDimensions.height;
+      scaleX = targetWidth / baseDimensions.width;
+      scaleY = targetHeight / baseDimensions.height;
       transforms.push(`scaleX(${scaleX}) scaleY(${scaleY})`);
     }
 
@@ -334,7 +357,7 @@ export function CanvasViewport({
     edits,
     showOriginal,
     zoom,
-    originalImageDimensions,
+    baseDimensions, // Use baseDimensions
     viewportDimensions,
     calculateImageTransforms,
     isShowingProcessed,
@@ -353,9 +376,9 @@ export function CanvasViewport({
       onMouseDown={() => setIsDragging(true)}
       onMouseUp={() => setIsDragging(false)}
     >
-      <div className="absolute inset-0 flex items-center justify-center p-4">
+      <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-4">
         <div
-          className="relative max-h-full max-w-full overflow-hidden shadow-2xl transition-all duration-200 ease-out"
+          className="relative origin-center transition-all duration-200 ease-out"
           style={{
             opacity: imageLoaded ? 1 : 0,
             transform: isDragging
@@ -368,21 +391,40 @@ export function CanvasViewport({
           <img
             src={activeImage || "/placeholder.svg"}
             alt="Preview"
-            className="pointer-events-none block max-h-full max-w-full object-contain"
+            className="pointer-events-none block object-contain"
             style={{
               ...imageStyle,
             }}
-            onLoad={() => {
+            onLoad={(e) => {
               setImageLoaded(true);
-              // Get image dimensions for calculations
-              const img = new Image();
-              img.onload = () => {
-                setOriginalImageDimensions({
-                  width: img.naturalWidth,
-                  height: img.naturalHeight,
-                });
-              };
-              img.src = activeImage || image;
+              const img = e.currentTarget;
+
+              // On initial load, or when active image changes significantly, fit to screen
+              // But only if we haven't manually zoomed
+              if (viewportDimensions.width && viewportDimensions.height) {
+                const contentWidth = img.naturalWidth;
+                const contentHeight = img.naturalHeight;
+
+                // Calculate zoom to fit
+                const scaleX = (viewportDimensions.width - 64) / contentWidth; // 64px padding
+                const scaleY = (viewportDimensions.height - 64) / contentHeight;
+                const fitZoom = Math.min(scaleX, scaleY);
+
+                // If image is larger than viewport, or we are just starting, fit it.
+                // If image is smaller, show at 100% (zoom=1) to avoid pixelation, unless it is HUGE then fit.
+                // "Pixel Perfect" means 100% zoom = 1 image pixel = 1 screen pixel.
+                // So we default to fitZoom only if fitZoom < 1 (image is big).
+                // If image is small (fitZoom > 1), we stay at 1.
+
+                const targetZoom = fitZoom < 1 ? fitZoom : 1;
+
+                // We only auto-fit if we seemingly haven't "set" a zoom yet (zoom=1 default),
+                // or if effective dimensions changed drastically (like a resize).
+                // For now, let's just auto-fit on load if it's the first load or if we want to force fit.
+                if (zoom === 1 || !imageLoaded) {
+                  setZoom(targetZoom);
+                }
+              }
             }}
           />
         </div>

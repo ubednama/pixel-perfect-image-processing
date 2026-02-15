@@ -19,17 +19,17 @@ export function LightControls({ edits, onEditChange }: LightControlsProps) {
       key: "brightness" as keyof ImageEdits,
       label: "Brightness",
       value: edits.brightness,
-      min: 0,
-      max: 200,
-      unit: "%",
+      min: -100,
+      max: 100,
+      unit: "",
     },
     {
       key: "contrast" as keyof ImageEdits,
       label: "Contrast",
       value: edits.contrast,
-      min: 0,
-      max: 200,
-      unit: "%",
+      min: -100,
+      max: 100,
+      unit: "",
     },
   ];
 
@@ -49,11 +49,7 @@ export function LightControls({ edits, onEditChange }: LightControlsProps) {
   };
 
   const resetAdjustment = (key: keyof ImageEdits) => {
-    let defaultValue = 100;
-    if (key === "brightness" || key === "contrast") {
-      defaultValue = 100;
-    }
-    onEditChange({ [key]: defaultValue });
+    onEditChange({ [key]: 0 });
   };
 
   return (
@@ -95,7 +91,7 @@ export function LightControls({ edits, onEditChange }: LightControlsProps) {
                 variant="outline"
                 size="sm"
                 onClick={() => resetAdjustment(adjustment.key)}
-                disabled={adjustment.value === 100}
+                disabled={adjustment.value === 0}
                 className="h-8 w-8 p-0"
               >
                 <RotateCcw size={14} />
