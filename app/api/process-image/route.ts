@@ -1,15 +1,6 @@
 import { ImageEdits } from "@/types/image-edits";
 import { NextRequest, NextResponse } from "next/server";
-import sharp from "sharp";
-
-// Define Sharp interpolator type locally as it's not exported
-type Interpolator =
-  | "nearest"
-  | "bilinear"
-  | "bicubic"
-  | "nohalo"
-  | "lbb"
-  | "vsqbs";
+import sharp, { Interpolators } from "sharp";
 
 export async function POST(request: NextRequest) {
   const startTime = performance.now();
@@ -82,7 +73,8 @@ export async function POST(request: NextRequest) {
         ] as [number, number, number, number],
         {
           background: edits.affine.background,
-          interpolator: edits.affine.interpolator as Interpolator,
+          interpolator: edits.affine
+            .interpolator as Interpolators[keyof Interpolators],
         }
       );
     }
