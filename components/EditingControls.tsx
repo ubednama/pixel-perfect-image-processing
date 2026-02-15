@@ -154,10 +154,10 @@ export function EditingControls({
                   value={section.id}
                   className="border-border bg-card/30 rounded-lg border"
                 >
-                  <AccordionTrigger className="hover:bg-muted/50 rounded-t-lg px-4 py-3 hover:no-underline">
+                  <AccordionTrigger className="hover:bg-muted/50 rounded-t-lg px-4 py-2.5 hover:no-underline">
                     <span className="font-medium">{section.title}</span>
                   </AccordionTrigger>
-                  <AccordionContent className="px-4 pb-4">
+                  <AccordionContent className="mt-2 px-4 pb-4">
                     <Component
                       edits={edits}
                       onEditChange={onEditChange}

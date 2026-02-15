@@ -2,10 +2,10 @@
 
 import type React from "react";
 
-import { useCallback, useState } from "react";
-import { motion } from "framer-motion";
-import { Upload, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+import { ImageIcon, Upload } from "lucide-react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
 interface LandingViewProps {
@@ -105,6 +105,7 @@ export function LandingView({ onImageUpload }: LandingViewProps) {
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
           className="mb-8 flex justify-center"
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.svg"
             alt="Pixel Perfect Logo"

@@ -52,11 +52,11 @@ export function TransformControls({
             onCheckedChange={handleAutoOrientToggle}
           />
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={resetAutoOrient}
             disabled={!edits.autoOrient}
-            className="h-8 w-8 bg-transparent p-0"
+            className="h-8 w-8 p-0 hover:bg-transparent"
           >
             <RotateCcw size={14} />
           </Button>
@@ -121,44 +121,44 @@ export function TransformControls({
       */}
 
       {/* Flip Controls */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <Label className="text-sm font-medium">Flip</Label>
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-medium">Flip</Label>
+        <div className="flex items-center gap-2">
           <Button
-            variant="outline"
+            variant="ghost"
+            size="icon"
+            onClick={handleFlipHorizontal}
+            className={`h-9 w-9 border transition-all duration-200 ${
+              edits.flipHorizontal
+                ? "border-green-500 bg-green-500/10 text-green-600 shadow-[0_0_10px_rgba(34,197,94,0.2)] hover:bg-green-500/20 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                : "text-muted-foreground hover:bg-muted border-transparent"
+            }`}
+            title="Flip Horizontal"
+          >
+            <FlipHorizontal size={16} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleFlipVertical}
+            className={`h-9 w-9 border transition-all duration-200 ${
+              edits.flipVertical
+                ? "border-green-500 bg-green-500/10 text-green-600 shadow-[0_0_10px_rgba(34,197,94,0.2)] hover:bg-green-500/20 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                : "text-muted-foreground hover:bg-muted border-transparent"
+            }`}
+            title="Flip Vertical"
+          >
+            <FlipVertical size={16} />
+          </Button>
+          <Button
+            variant="ghost"
             size="sm"
             onClick={resetFlips}
             disabled={!edits.flipHorizontal && !edits.flipVertical}
-            className="h-8 w-8 bg-transparent p-0"
+            className="h-8 w-8 p-0 hover:bg-transparent"
           >
             <RotateCcw size={14} />
           </Button>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleFlipHorizontal}
-            className="flex-1 gap-2 bg-transparent"
-          >
-            <FlipHorizontal size={16} />
-            Horizontal
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleFlipVertical}
-            className="flex-1 gap-2 bg-transparent"
-          >
-            <FlipVertical size={16} />
-            Vertical
-          </Button>
-        </div>
-        <div className="text-muted-foreground text-xs">
-          Current: {edits.flipHorizontal ? "H" : ""}
-          {edits.flipHorizontal && edits.flipVertical ? " + " : ""}
-          {edits.flipVertical ? "V" : ""}
-          {!edits.flipHorizontal && !edits.flipVertical ? "None" : ""}
         </div>
       </div>
     </div>

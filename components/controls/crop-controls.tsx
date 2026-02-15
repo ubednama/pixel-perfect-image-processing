@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Crop, RotateCcw } from "lucide-react";
 import type { ImageEdits } from "@/types/image-edits";
+import { Crop, RotateCcw } from "lucide-react";
+import { useState } from "react";
 
 interface CropControlsProps {
   edits: ImageEdits;
@@ -18,13 +18,11 @@ interface CropControlsProps {
 export function CropControls({
   edits,
   onEditChange,
-  originalImage,
   onZoomReset,
-  onCancel,
   onCropModeEnter,
   onCropModeToggle,
 }: CropControlsProps) {
-  const [cropMode, setCropMode] = useState(false);
+  const [, setCropMode] = useState(false);
 
   const handleActivateCrop = () => {
     if (onZoomReset) {

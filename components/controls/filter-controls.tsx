@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { RotateCcw } from "lucide-react";
 import type { ImageEdits } from "@/types/image-edits";
+import { motion } from "framer-motion";
+import { RotateCcw } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface FilterControlsProps {
   edits: ImageEdits;
@@ -109,96 +109,94 @@ const filterPresets: FilterPreset[] = [
 ];
 
 export function FilterControls({
-  edits,
   onEditChange,
   originalImage,
 }: FilterControlsProps) {
   const [selectedFilter, setSelectedFilter] = useState("None");
   const canvasRefs = useRef<{ [key: string]: HTMLCanvasElement | null }>({});
 
+  const generateThumbnail = useCallback(
+    async (filterName: string, filterEdits: Partial<ImageEdits>) => {
+      const canvas = canvasRefs.current[filterName];
+      if (!canvas) return;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+
+      img.onload = () => {
+        const size = 80;
+        canvas.width = size;
+        canvas.height = size;
+
+        // Calculate crop to center square
+        const sourceSize = Math.min(img.width, img.height);
+        const sourceX = (img.width - sourceSize) / 2;
+        const sourceY = (img.height - sourceSize) / 2;
+
+        // Build filter string
+        const filters = [];
+        if (
+          filterEdits.brightness !== undefined &&
+          filterEdits.brightness !== 0
+        ) {
+          filters.push(`brightness(${100 + filterEdits.brightness}%)`);
+        }
+        if (filterEdits.contrast !== undefined && filterEdits.contrast !== 0) {
+          filters.push(`contrast(${100 + filterEdits.contrast}%)`);
+        }
+        if (
+          filterEdits.saturation !== undefined &&
+          filterEdits.saturation !== 0
+        ) {
+          filters.push(`saturate(${100 + filterEdits.saturation}%)`);
+        }
+        if (filterEdits.grayscale) {
+          filters.push("grayscale(100%)");
+        }
+
+        ctx.filter = filters.join(" ") || "none";
+        ctx.drawImage(
+          img,
+          sourceX,
+          sourceY,
+          sourceSize,
+          sourceSize,
+          0,
+          0,
+          size,
+          size
+        );
+
+        // Apply sepia tint for sepia filter
+        if (filterName === "Sepia") {
+          ctx.globalCompositeOperation = "multiply";
+          ctx.fillStyle = "rgba(196, 154, 108, 0.4)";
+          ctx.fillRect(0, 0, size, size);
+          ctx.globalCompositeOperation = "source-over";
+        }
+
+        // Apply blue tint for arctic filter
+        if (filterName === "Arctic") {
+          ctx.globalCompositeOperation = "multiply";
+          ctx.fillStyle = "rgba(173, 216, 230, 0.3)";
+          ctx.fillRect(0, 0, size, size);
+          ctx.globalCompositeOperation = "source-over";
+        }
+      };
+
+      img.src = originalImage;
+    },
+    [originalImage]
+  );
+
   useEffect(() => {
-    // Generate thumbnails for each filter
     filterPresets.forEach((preset) => {
       generateThumbnail(preset.name, preset.edits);
     });
-  }, [originalImage]);
-
-  const generateThumbnail = async (
-    filterName: string,
-    filterEdits: Partial<ImageEdits>
-  ) => {
-    const canvas = canvasRefs.current[filterName];
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-
-    img.onload = () => {
-      const size = 80;
-      canvas.width = size;
-      canvas.height = size;
-
-      // Calculate crop to center square
-      const sourceSize = Math.min(img.width, img.height);
-      const sourceX = (img.width - sourceSize) / 2;
-      const sourceY = (img.height - sourceSize) / 2;
-
-      // Build filter string
-      const filters = [];
-      if (
-        filterEdits.brightness !== undefined &&
-        filterEdits.brightness !== 0
-      ) {
-        filters.push(`brightness(${100 + filterEdits.brightness}%)`);
-      }
-      if (filterEdits.contrast !== undefined && filterEdits.contrast !== 0) {
-        filters.push(`contrast(${100 + filterEdits.contrast}%)`);
-      }
-      if (
-        filterEdits.saturation !== undefined &&
-        filterEdits.saturation !== 0
-      ) {
-        filters.push(`saturate(${100 + filterEdits.saturation}%)`);
-      }
-      if (filterEdits.grayscale) {
-        filters.push("grayscale(100%)");
-      }
-
-      ctx.filter = filters.join(" ") || "none";
-      ctx.drawImage(
-        img,
-        sourceX,
-        sourceY,
-        sourceSize,
-        sourceSize,
-        0,
-        0,
-        size,
-        size
-      );
-
-      // Apply sepia tint for sepia filter
-      if (filterName === "Sepia") {
-        ctx.globalCompositeOperation = "multiply";
-        ctx.fillStyle = "rgba(196, 154, 108, 0.4)";
-        ctx.fillRect(0, 0, size, size);
-        ctx.globalCompositeOperation = "source-over";
-      }
-
-      // Apply blue tint for arctic filter
-      if (filterName === "Arctic") {
-        ctx.globalCompositeOperation = "multiply";
-        ctx.fillStyle = "rgba(173, 216, 230, 0.3)";
-        ctx.fillRect(0, 0, size, size);
-        ctx.globalCompositeOperation = "source-over";
-      }
-    };
-
-    img.src = originalImage;
-  };
+  }, [generateThumbnail]);
 
   const handleFilterSelect = (preset: FilterPreset) => {
     setSelectedFilter(preset.name);
@@ -218,8 +216,8 @@ export function FilterControls({
         <Button
           onClick={handleResetFilter}
           disabled={selectedFilter === "None"}
-          className="h-8 w-8 bg-transparent p-0"
-          variant="outline"
+          className="h-8 w-8 p-0 hover:bg-transparent"
+          variant="ghost"
         >
           <RotateCcw size={14} />
         </Button>
@@ -234,15 +232,18 @@ export function FilterControls({
             transition={{ duration: 0.3, delay: index * 0.05 }}
             className="shrink-0"
           >
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => handleFilterSelect(preset)}
-              className={`group relative flex flex-col items-center gap-2 rounded-lg p-2 transition-all ${
+              title={preset.name}
+              className={`group relative flex h-9 w-9 flex-col items-center justify-center rounded-md border p-0 transition-all duration-200 ${
                 selectedFilter === preset.name
-                  ? "bg-primary/20 border-primary border-2"
-                  : "bg-muted/30 hover:border-border border-2 border-transparent"
+                  ? "border-green-500 bg-green-500/10 text-green-600 shadow-[0_0_10px_rgba(34,197,94,0.2)] hover:bg-green-500/20 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                  : "text-muted-foreground hover:bg-muted border-transparent"
               }`}
             >
-              <div className="bg-muted border-border relative h-20 w-20 overflow-hidden rounded-md border">
+              <div className="h-full w-full overflow-hidden rounded-[inherit]">
                 <canvas
                   ref={(el) => {
                     canvasRefs.current[preset.name] = el;
@@ -251,16 +252,8 @@ export function FilterControls({
                   width={80}
                   height={80}
                 />
-                {selectedFilter === preset.name && (
-                  <div className="bg-primary/20 absolute inset-0 flex items-center justify-center">
-                    <div className="bg-primary h-4 w-4 rounded-full" />
-                  </div>
-                )}
               </div>
-              <span className="max-w-20 min-w-0 truncate text-center text-xs font-medium">
-                {preset.name}
-              </span>
-            </button>
+            </Button>
           </motion.div>
         ))}
       </div>

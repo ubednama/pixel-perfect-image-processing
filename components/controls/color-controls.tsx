@@ -56,48 +56,50 @@ export function ColorControls({ edits, onEditChange }: ColorControlsProps) {
     <div className="space-y-6">
       {adjustments.map((adjustment) => (
         <div key={adjustment.key} className="space-y-3">
-          <Label className="text-sm font-medium">{adjustment.label}</Label>
-          <div className="space-y-3">
-            <Slider
-              value={[adjustment.value as number]}
-              onValueChange={(value) =>
-                handleAdjustmentChange(adjustment.key, value)
-              }
-              min={adjustment.min}
-              max={adjustment.max}
-              step={1}
-              className="w-full"
-            />
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">{adjustment.label}</Label>
             <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                value={adjustment.value}
-                onChange={(e) =>
-                  handleInputChange(
-                    adjustment.key,
-                    e,
-                    adjustment.min,
-                    adjustment.max
-                  )
-                }
-                min={adjustment.min}
-                max={adjustment.max}
-                className="h-8 w-20 text-sm"
-              />
-              <span className="text-muted-foreground text-sm">
+              <div className="relative">
+                <Input
+                  type="number"
+                  value={adjustment.value}
+                  onChange={(e) =>
+                    handleInputChange(
+                      adjustment.key,
+                      e,
+                      adjustment.min,
+                      adjustment.max
+                    )
+                  }
+                  min={adjustment.min}
+                  max={adjustment.max}
+                  className="h-8 w-10 px-1 py-0.5 text-right text-xs"
+                />
+              </div>
+              <span className="text-muted-foreground w-3 text-xs">
                 {adjustment.unit}
               </span>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => resetAdjustment(adjustment.key)}
                 disabled={adjustment.value === 0}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 hover:bg-transparent"
               >
                 <RotateCcw size={14} />
               </Button>
             </div>
           </div>
+          <Slider
+            value={[adjustment.value as number]}
+            onValueChange={(value) =>
+              handleAdjustmentChange(adjustment.key, value)
+            }
+            min={adjustment.min}
+            max={adjustment.max}
+            step={1}
+            className="w-full"
+          />
         </div>
       ))}
     </div>

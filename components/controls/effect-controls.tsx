@@ -147,11 +147,11 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
             onCheckedChange={handleGrayscaleToggle}
           />
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={resetGrayscale}
             disabled={!edits.grayscale}
-            className="h-8 w-8 bg-transparent p-0"
+            className="h-8 w-8 p-0 hover:bg-transparent"
           >
             <RotateCcw size={14} />
           </Button>
@@ -164,11 +164,11 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
         <div className="flex items-center gap-2">
           <Switch checked={edits.negate} onCheckedChange={handleNegateToggle} />
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={resetNegate}
             disabled={!edits.negate}
-            className="h-8 w-8 bg-transparent p-0"
+            className="h-8 w-8 p-0 hover:bg-transparent"
           >
             <RotateCcw size={14} />
           </Button>
@@ -177,7 +177,31 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
 
       {/* Blur */}
       <div className="space-y-3">
-        <Label className="text-sm font-medium">Blur</Label>
+        <div className="flex items-center justify-between">
+          <Label className="text-sm font-medium">Blur</Label>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Input
+                type="number"
+                value={getBlurPercent()}
+                onChange={handleBlurInputChange}
+                min={0}
+                max={100}
+                className="h-8 w-10 px-1 py-0.5 text-right text-xs"
+              />
+            </div>
+            <span className="text-muted-foreground w-3 text-xs">%</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetBlur}
+              disabled={edits.blur === 0}
+              className="h-8 w-8 p-0 hover:bg-transparent"
+            >
+              <RotateCcw size={14} />
+            </Button>
+          </div>
+        </div>
         <div className="space-y-3">
           <Slider
             value={[getBlurPercent()]}
@@ -187,32 +211,36 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
             step={1}
             className="w-full"
           />
-          <div className="flex items-center gap-2">
-            <Input
-              type="number"
-              value={getBlurPercent()}
-              onChange={handleBlurInputChange}
-              min={0}
-              max={100}
-              className="h-8 w-20 text-sm"
-            />
-            <span className="text-muted-foreground text-sm">%</span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={resetBlur}
-              disabled={edits.blur === 0}
-              className="h-8 w-8 bg-transparent p-0"
-            >
-              <RotateCcw size={14} />
-            </Button>
-          </div>
         </div>
       </div>
 
       {/* Sharpen */}
       <div className="space-y-3">
-        <Label className="text-sm font-medium">Sharpen</Label>
+        <div className="flex items-center justify-between">
+          <Label className="text-sm font-medium">Sharpen</Label>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Input
+                type="number"
+                value={getSharpenPercent()}
+                onChange={handleSharpenInputChange}
+                min={0}
+                max={100}
+                className="h-8 w-10 px-1 py-0.5 text-right text-xs"
+              />
+            </div>
+            <span className="text-muted-foreground w-3 text-xs">%</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetSharpen}
+              disabled={edits.sharpen.sigma === 0}
+              className="h-8 w-8 p-0 hover:bg-transparent"
+            >
+              <RotateCcw size={14} />
+            </Button>
+          </div>
+        </div>
         <div className="space-y-3">
           <Slider
             value={[getSharpenPercent()]}
@@ -222,32 +250,35 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
             step={1}
             className="w-full"
           />
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label className="text-sm font-medium">Noise Reduction</Label>
           <div className="flex items-center gap-2">
-            <Input
-              type="number"
-              value={getSharpenPercent()}
-              onChange={handleSharpenInputChange}
-              min={0}
-              max={100}
-              className="h-8 w-20 text-sm"
-            />
-            <span className="text-muted-foreground text-sm">%</span>
+            <div className="relative">
+              <Input
+                type="number"
+                value={getNoisePercent()}
+                onChange={handleNoiseInputChange}
+                min={0}
+                max={100}
+                className="h-8 w-10 px-1 py-0.5 text-right text-xs"
+              />
+            </div>
+            <span className="text-muted-foreground w-3 text-xs">%</span>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              onClick={resetSharpen}
-              disabled={edits.sharpen.sigma === 0}
-              className="h-8 w-8 bg-transparent p-0"
+              onClick={resetNoise}
+              disabled={edits.median <= 1}
+              className="h-8 w-8 p-0 hover:bg-transparent"
             >
               <RotateCcw size={14} />
             </Button>
           </div>
         </div>
-      </div>
-
-      {/* Noise Reduction (formerly Median) */}
-      <div className="space-y-3">
-        <Label className="text-sm font-medium">Noise Reduction</Label>
         <div className="space-y-3">
           <Slider
             value={[getNoisePercent()]}
@@ -257,32 +288,37 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
             step={1}
             className="w-full"
           />
-          <div className="flex items-center gap-2">
-            <Input
-              type="number"
-              value={getNoisePercent()}
-              onChange={handleNoiseInputChange}
-              min={0}
-              max={100}
-              className="h-8 w-20 text-sm"
-            />
-            <span className="text-muted-foreground text-sm">%</span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={resetNoise}
-              disabled={edits.median <= 1}
-              className="h-8 w-8 bg-transparent p-0"
-            >
-              <RotateCcw size={14} />
-            </Button>
-          </div>
         </div>
       </div>
 
       {/* Gamma */}
       <div className="space-y-3">
-        <Label className="text-sm font-medium">Gamma</Label>
+        <div className="flex items-center justify-between">
+          <Label className="text-sm font-medium">Gamma</Label>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Input
+                type="number"
+                value={edits.gamma}
+                onChange={handleGammaInputChange}
+                min={0.1}
+                max={3}
+                step={0.1}
+                className="h-8 w-10 px-1 py-0.5 text-right text-xs"
+              />
+            </div>
+            <span className="text-muted-foreground w-3 text-xs">γ</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetGamma}
+              disabled={edits.gamma === 1}
+              className="h-8 w-8 p-0 hover:bg-transparent"
+            >
+              <RotateCcw size={14} />
+            </Button>
+          </div>
+        </div>
         <div className="space-y-3">
           <Slider
             value={[edits.gamma]}
@@ -292,27 +328,6 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
             step={0.1}
             className="w-full"
           />
-          <div className="flex items-center gap-2">
-            <Input
-              type="number"
-              value={edits.gamma}
-              onChange={handleGammaInputChange}
-              min={0.1}
-              max={3}
-              step={0.1}
-              className="h-8 w-20 text-sm"
-            />
-            <span className="text-muted-foreground text-sm">γ</span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={resetGamma}
-              disabled={edits.gamma === 1}
-              className="h-8 w-8 bg-transparent p-0"
-            >
-              <RotateCcw size={14} />
-            </Button>
-          </div>
         </div>
       </div>
     </div>

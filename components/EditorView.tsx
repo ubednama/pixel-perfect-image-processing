@@ -15,7 +15,6 @@ interface EditorViewProps {
   uploadedImage: string;
   originalImage: string;
   originalFilename?: string | null;
-  onReset: () => void;
   onImageUpdate: (imageUrl: string) => void;
   onImageSelect?: (imageUrl: string, filename?: string) => void;
 }
@@ -64,7 +63,7 @@ const defaultEdits: ImageEdits = {
   // Filters and effects
   blur: 0,
   sharpen: {
-    sigma: 1,
+    sigma: 0,
     m1: 1.0,
     m2: 2.0,
     x1: 2.0,
@@ -175,7 +174,6 @@ export function EditorView({
   uploadedImage,
   originalImage,
   originalFilename,
-  onReset,
   onImageUpdate,
   onImageSelect,
 }: EditorViewProps) {
@@ -423,13 +421,8 @@ export function EditorView({
       <EditorHeader
         hasUnsavedChanges={hasUnsavedChanges}
         onReset={handleResetAll}
-        onNewImage={onReset}
         onSaveChanges={handleSaveChanges}
         processedImageUrl={imageState.processedImageUrl}
-        canUndo={canUndo}
-        canRedo={canRedo}
-        onUndo={handleUndo}
-        onRedo={handleRedo}
         onBeforeAfterToggle={handleBeforeAfterToggle}
         targetKB={imageState.edits.downloadTargetKB}
         exportFormat={imageState.edits.exportFormat}
@@ -439,7 +432,6 @@ export function EditorView({
             `Changed export format to ${format}`
           )
         }
-        notifyOfChange={notifyOfChange}
         onImageSelect={onImageSelect}
         originalFilename={originalFilename}
       />

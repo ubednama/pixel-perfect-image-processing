@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import type { ImageEdits } from "@/types/image-edits";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface FilterPreset {
   name: string;
@@ -91,7 +91,6 @@ interface FilterOverlayProps {
   onClose: () => void;
   onApplyFilter: (edits: Partial<ImageEdits>, filterName: string) => void;
   originalImage: string;
-  currentEdits: ImageEdits;
   notifyOfChange?: () => void;
 }
 
@@ -100,10 +99,8 @@ export function FilterOverlay({
   onClose,
   onApplyFilter,
   originalImage,
-  currentEdits,
   notifyOfChange,
 }: FilterOverlayProps) {
-  const [selectedFilter, setSelectedFilter] = useState<string>("None");
   const [scrollPosition, setScrollPosition] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const canvasRefs = useRef<{ [key: string]: HTMLCanvasElement | null }>({});
@@ -115,6 +112,95 @@ export function FilterOverlay({
     (filterPresets.length - visibleItems) * itemWidth
   );
 
+  /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  const generateThumbnail = useCallback(
+    async (filterName: string, filterEdits: Partial<ImageEdits>) => {
+      const canvas = canvasRefs.current[filterName];
+      if (!canvas) return;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+
+      img.onload = () => {
+        const size = 100;
+        canvas.width = size;
+        canvas.height = size;
+
+        const sourceSize = Math.min(img.width, img.height);
+        const sourceX = (img.width - sourceSize) / 2;
+        const sourceY = (img.height - sourceSize) / 2;
+
+        const filters = [];
+        if (
+          filterEdits.brightness !== undefined &&
+          filterEdits.brightness !== 0
+        ) {
+          filters.push(`brightness(${100 + filterEdits.brightness}%)`);
+        }
+        if (filterEdits.contrast !== undefined && filterEdits.contrast !== 0) {
+          filters.push(`contrast(${100 + filterEdits.contrast}%)`);
+        }
+        if (
+          filterEdits.saturation !== undefined &&
+          filterEdits.saturation !== 0
+        ) {
+          filters.push(`saturate(${100 + filterEdits.saturation}%)`);
+        }
+        if (filterEdits.grayscale) {
+          filters.push("grayscale(100%)");
+        }
+
+        ctx.filter = filters.join(" ") || "none";
+        ctx.drawImage(
+          img,
+          sourceX,
+          sourceY,
+          sourceSize,
+          sourceSize,
+          0,
+          0,
+          size,
+          size
+        );
+
+        // Apply special tints for certain filters
+        if (filterName === "Sepia") {
+          ctx.globalCompositeOperation = "multiply";
+          ctx.fillStyle = "rgba(196, 154, 108, 0.4)";
+          ctx.fillRect(0, 0, size, size);
+          ctx.globalCompositeOperation = "source-over";
+        }
+
+        if (filterName === "Arctic") {
+          ctx.globalCompositeOperation = "multiply";
+          ctx.fillStyle = "rgba(173, 216, 230, 0.3)";
+          ctx.fillRect(0, 0, size, size);
+          ctx.globalCompositeOperation = "source-over";
+        }
+
+        if (filterName === "Warm") {
+          ctx.globalCompositeOperation = "multiply";
+          ctx.fillStyle = "rgba(255, 200, 150, 0.2)";
+          ctx.fillRect(0, 0, size, size);
+          ctx.globalCompositeOperation = "source-over";
+        }
+
+        if (filterName === "Cool") {
+          ctx.globalCompositeOperation = "multiply";
+          ctx.fillStyle = "rgba(150, 200, 255, 0.2)";
+          ctx.fillRect(0, 0, size, size);
+          ctx.globalCompositeOperation = "source-over";
+        }
+      };
+
+      img.src = originalImage;
+    },
+    [originalImage]
+  );
+
   useEffect(() => {
     if (isOpen && originalImage) {
       // Generate thumbnails for each filter
@@ -122,97 +208,7 @@ export function FilterOverlay({
         generateThumbnail(preset.name, preset.edits);
       });
     }
-  }, [isOpen, originalImage]);
-
-  const generateThumbnail = async (
-    filterName: string,
-    filterEdits: Partial<ImageEdits>
-  ) => {
-    const canvas = canvasRefs.current[filterName];
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-
-    img.onload = () => {
-      const size = 100;
-      canvas.width = size;
-      canvas.height = size;
-
-      // Calculate crop to center square
-      const sourceSize = Math.min(img.width, img.height);
-      const sourceX = (img.width - sourceSize) / 2;
-      const sourceY = (img.height - sourceSize) / 2;
-
-      // Build filter string
-      const filters = [];
-      if (
-        filterEdits.brightness !== undefined &&
-        filterEdits.brightness !== 0
-      ) {
-        filters.push(`brightness(${100 + filterEdits.brightness}%)`);
-      }
-      if (filterEdits.contrast !== undefined && filterEdits.contrast !== 0) {
-        filters.push(`contrast(${100 + filterEdits.contrast}%)`);
-      }
-      if (
-        filterEdits.saturation !== undefined &&
-        filterEdits.saturation !== 0
-      ) {
-        filters.push(`saturate(${100 + filterEdits.saturation}%)`);
-      }
-      if (filterEdits.grayscale) {
-        filters.push("grayscale(100%)");
-      }
-
-      ctx.filter = filters.join(" ") || "none";
-      ctx.drawImage(
-        img,
-        sourceX,
-        sourceY,
-        sourceSize,
-        sourceSize,
-        0,
-        0,
-        size,
-        size
-      );
-
-      // Apply special tints for certain filters
-      if (filterName === "Sepia") {
-        ctx.globalCompositeOperation = "multiply";
-        ctx.fillStyle = "rgba(196, 154, 108, 0.4)";
-        ctx.fillRect(0, 0, size, size);
-        ctx.globalCompositeOperation = "source-over";
-      }
-
-      if (filterName === "Arctic") {
-        ctx.globalCompositeOperation = "multiply";
-        ctx.fillStyle = "rgba(173, 216, 230, 0.3)";
-        ctx.fillRect(0, 0, size, size);
-        ctx.globalCompositeOperation = "source-over";
-      }
-
-      if (filterName === "Warm") {
-        ctx.globalCompositeOperation = "multiply";
-        ctx.fillStyle = "rgba(255, 200, 150, 0.2)";
-        ctx.fillRect(0, 0, size, size);
-        ctx.globalCompositeOperation = "source-over";
-      }
-
-      if (filterName === "Cool") {
-        ctx.globalCompositeOperation = "multiply";
-        ctx.fillStyle = "rgba(150, 200, 255, 0.2)";
-        ctx.fillRect(0, 0, size, size);
-        ctx.globalCompositeOperation = "source-over";
-      }
-    };
-
-    img.src = originalImage;
-  };
+  }, [isOpen, originalImage, generateThumbnail]);
 
   const handleScrollLeft = () => {
     const newPosition = Math.max(0, scrollPosition - itemWidth * 2);
@@ -237,7 +233,6 @@ export function FilterOverlay({
   };
 
   const handleFilterSelect = (preset: FilterPreset) => {
-    setSelectedFilter(preset.name);
     onApplyFilter(preset.edits, preset.name);
     if (notifyOfChange) {
       notifyOfChange();

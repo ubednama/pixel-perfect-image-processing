@@ -1,18 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { ImageUploadModal } from "@/components/ImageUploadModal";
-import { RotateCcw, Download, Upload, Save, Eye } from "lucide-react";
-import { toast } from "sonner";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,25 +11,30 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { motion } from "framer-motion";
+import { Download, Eye, RotateCcw, Save, Upload } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface EditorHeaderProps {
   hasUnsavedChanges: boolean;
   onReset: () => void;
-  onNewImage: () => void;
   onSaveChanges: () => void;
   processedImageUrl?: string;
-  canUndo: boolean;
-  canRedo: boolean;
-  onUndo: () => void;
-  onRedo: () => void;
   onBeforeAfterToggle?: (showOriginal: boolean) => void;
   targetKB?: number;
   exportFormat?: "png" | "jpeg" | "webp" | "avif" | "tiff" | "gif" | "original";
   onExportFormatChange?: (
     format: "png" | "jpeg" | "webp" | "avif" | "tiff" | "gif" | "original"
   ) => void;
-  notifyOfChange?: () => void;
   onImageSelect?: (imageUrl: string, filename?: string) => void;
   originalFilename?: string | null;
 }
@@ -48,18 +42,12 @@ interface EditorHeaderProps {
 export function EditorHeader({
   hasUnsavedChanges,
   onReset,
-  onNewImage,
   onSaveChanges,
   processedImageUrl,
-  canUndo,
-  canRedo,
-  onUndo,
-  onRedo,
   onBeforeAfterToggle,
   targetKB,
   exportFormat = "png",
   onExportFormatChange,
-  notifyOfChange,
   onImageSelect,
   originalFilename,
 }: EditorHeaderProps) {
@@ -272,6 +260,7 @@ export function EditorHeader({
               transition={{ duration: 0.2, delay: 0.05 }}
               className="flex items-center gap-3"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logo.svg"
                 alt="Pixel Perfect Logo"

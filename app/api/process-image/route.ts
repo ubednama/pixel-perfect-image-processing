@@ -2,6 +2,15 @@ import { ImageEdits } from "@/types/image-edits";
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 
+// Define Sharp interpolator type locally as it's not exported
+type Interpolator =
+  | "nearest"
+  | "bilinear"
+  | "bicubic"
+  | "nohalo"
+  | "lbb"
+  | "vsqbs";
+
 export async function POST(request: NextRequest) {
   const startTime = performance.now();
   const timings: Record<string, number> = {};
@@ -73,7 +82,7 @@ export async function POST(request: NextRequest) {
         ] as [number, number, number, number],
         {
           background: edits.affine.background,
-          interpolator: edits.affine.interpolator as any,
+          interpolator: edits.affine.interpolator as Interpolator,
         }
       );
     }
@@ -130,13 +139,14 @@ export async function POST(request: NextRequest) {
 
       // Apply resize fit and position
       if (edits.resizeFit) {
-        resizeOptions.fit = edits.resizeFit as any;
+        resizeOptions.fit = edits.resizeFit as keyof sharp.FitEnum;
       }
       if (edits.resizePosition) {
-        resizeOptions.position = edits.resizePosition as any;
+        resizeOptions.position =
+          edits.resizePosition as keyof sharp.StrategyEnum;
       }
       if (edits.resizeKernel) {
-        resizeOptions.kernel = edits.resizeKernel as any;
+        resizeOptions.kernel = edits.resizeKernel as keyof sharp.KernelEnum;
       }
       if (edits.withoutEnlargement) {
         resizeOptions.withoutEnlargement = edits.withoutEnlargement;
@@ -154,11 +164,11 @@ export async function POST(request: NextRequest) {
 
     // Apply color space transformations
     if (edits.toColorspace && edits.toColorspace !== "srgb") {
-      sharpInstance = sharpInstance.toColorspace(edits.toColorspace as any);
+      sharpInstance = sharpInstance.toColourspace(edits.toColorspace as string);
     }
     if (edits.pipelineColorspace && edits.pipelineColorspace !== "scrgb") {
-      sharpInstance = sharpInstance.pipelineColorspace(
-        edits.pipelineColorspace as any
+      sharpInstance = sharpInstance.pipelineColourspace(
+        edits.pipelineColorspace as string
       );
     }
 
@@ -304,8 +314,8 @@ export async function POST(request: NextRequest) {
       sharpInstance = sharpInstance.composite([
         {
           input: compositeBuffer,
-          blend: edits.composite.blend as any,
-          gravity: edits.composite.gravity as any,
+          blend: edits.composite.blend as sharp.Blend,
+          gravity: edits.composite.gravity as sharp.Gravity,
           left: edits.composite.left,
           top: edits.composite.top,
         },
@@ -314,7 +324,13 @@ export async function POST(request: NextRequest) {
 
     // Determine output format
     let outputFormat: keyof sharp.FormatEnum = "webp";
-    let outputOptions: any = { quality: edits.quality || 80 };
+    let outputOptions:
+      | sharp.PngOptions
+      | sharp.JpegOptions
+      | sharp.WebpOptions
+      | sharp.AvifOptions
+      | sharp.TiffOptions
+      | sharp.GifOptions = { quality: edits.quality || 80 };
 
     // Force PNG format if rotation is applied to preserve transparency
     const hasRotation = edits.rotation && edits.rotation !== 0;
@@ -411,25 +427,6 @@ export async function POST(request: NextRequest) {
     const totalTime = performance.now() - startTime;
     timings.total = totalTime;
 
-    // Log performance metrics for profiling
-    console.log("Image Processing Performance:", {
-      totalTime: `${totalTime.toFixed(2)}ms`,
-      breakdown: Object.entries(timings)
-        .map(([key, value]) => `${key}: ${value.toFixed(2)}ms`)
-        .join(", "),
-      imageSize: `${(imageBuffer.length / 1024).toFixed(2)}KB`,
-      outputSize: `${(processedBuffer.length / 1024).toFixed(2)}KB`,
-      editsApplied: Object.keys(edits).filter((key) => {
-        const value = edits[key as keyof ImageEdits];
-        return (
-          value !== 0 &&
-          value !== false &&
-          value !== "" &&
-          !(typeof value === "object" && value && !value.enabled)
-        );
-      }),
-    });
-
     return NextResponse.json({
       success: true,
       imageUrl: dataUrl,
@@ -442,7 +439,6 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Image processing error:", error);
     return NextResponse.json(
       {
         error: "Failed to process image",

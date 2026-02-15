@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { CustomCursor } from "@/components/CustomCursor";
-import { MobileLandscapeLock } from "@/components/MobileLandscapeLock";
-import { LandingView } from "@/components/LandingView";
 import { EditorView } from "@/components/EditorView";
+import { LandingView } from "@/components/LandingView";
+import { MobileLandscapeLock } from "@/components/MobileLandscapeLock";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 
 export default function Home() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -16,11 +16,6 @@ export default function Home() {
     setUploadedImage(imageUrl);
     setOriginalImage(imageUrl);
     setOriginalFilename(filename || null);
-  };
-
-  const handleReset = () => {
-    setUploadedImage(null);
-    setOriginalImage(null);
   };
 
   return (
@@ -51,7 +46,6 @@ export default function Home() {
                 uploadedImage={uploadedImage!}
                 originalImage={originalImage!}
                 originalFilename={originalFilename}
-                onReset={handleReset}
                 onImageUpdate={setUploadedImage}
                 onImageSelect={handleImageUpload}
               />

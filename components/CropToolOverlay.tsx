@@ -2,11 +2,11 @@
 
 import type React from "react";
 
-import { useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Check, X } from "lucide-react";
 import type { ImageEdits } from "@/types/image-edits";
+import { AnimatePresence, motion } from "framer-motion";
+import { Check, X } from "lucide-react";
+import { useRef, useState } from "react";
 
 interface CropToolOverlayProps {
   isOpen: boolean;
@@ -36,7 +36,6 @@ export function CropToolOverlay({
     if (!isDragging || !dragHandle || !containerRef.current || !imgRef.current)
       return;
 
-    const rect = containerRef.current.getBoundingClientRect();
     const imgRect = imgRef.current.getBoundingClientRect();
     const relX = (e.clientX - imgRect.left) / imgRect.width;
     const relY = (e.clientY - imgRect.top) / imgRect.height;
@@ -114,6 +113,7 @@ export function CropToolOverlay({
         >
           <div className="relative flex h-full w-full items-center justify-center">
             <div className="relative max-h-96 max-w-2xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 ref={imgRef}
                 src={image || "/placeholder.svg"}

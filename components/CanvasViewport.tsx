@@ -498,7 +498,6 @@ export function CanvasViewport({
         onClose={() => setShowFilterOverlay(false)}
         onApplyFilter={handleApplyFilter}
         originalImage={image}
-        currentEdits={edits}
         notifyOfChange={notifyOfChange}
       />
 

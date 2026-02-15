@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
-import {
-  runComprehensiveDimensionTests,
-  generateTestReport,
-} from "@/lib/dimension-tests";
 import type { DimensionTestResult } from "@/lib/dimension-tests";
+import {
+  generateTestReport,
+  runComprehensiveDimensionTests,
+} from "@/lib/dimension-tests";
+import { useState } from "react";
 
 export default function DimensionTestRunner() {
   const [testResults, setTestResults] = useState<DimensionTestResult[]>([]);
@@ -18,11 +18,7 @@ export default function DimensionTestRunner() {
     setTestReport("");
 
     try {
-      console.log("Starting dimension tests...");
-
-      // Mock process function for testing (since we need to provide one)
-      const mockProcessImageFn = async (imageUrl: string, edits: any) => {
-        // This is a simplified mock - in real tests we'd use the actual API
+      const mockProcessImageFn = async (imageUrl: string, _edits: unknown) => {
         return { imageUrl: imageUrl, error: undefined };
       };
 
@@ -31,8 +27,6 @@ export default function DimensionTestRunner() {
 
       const report = generateTestReport(results);
       setTestReport(report);
-
-      console.log("Dimension tests completed:", results);
     } catch (error) {
       console.error("Error running dimension tests:", error);
       setTestReport(`Error running tests: ${error}`);
