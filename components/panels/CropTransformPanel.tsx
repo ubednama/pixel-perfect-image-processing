@@ -34,24 +34,27 @@ export function CropTransformPanel({
         <Label className="text-muted-foreground text-xs font-medium">
           Rotate
         </Label>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            size="sm"
+            size="icon"
             onClick={() => handleRotate("left")}
-            className="flex-1 gap-2"
+            title="Rotate Left 90°"
+            className="flex-1"
           >
-            <RotateCcw size={15} />
-            Left 90°
+            <RotateCcw size={16} />
           </Button>
+          <div className="text-muted-foreground w-12 text-center text-[11px] font-medium">
+            {edits.rotation ?? 0}°
+          </div>
           <Button
             variant="outline"
-            size="sm"
+            size="icon"
             onClick={() => handleRotate("right")}
-            className="flex-1 gap-2"
+            title="Rotate Right 90°"
+            className="flex-1"
           >
-            <RotateCw size={15} />
-            Right 90°
+            <RotateCw size={16} />
           </Button>
         </div>
       </div>
@@ -61,34 +64,34 @@ export function CropTransformPanel({
         <Label className="text-muted-foreground text-xs font-medium">
           Flip
         </Label>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Button
             variant={edits.flipHorizontal ? "default" : "outline"}
-            size="sm"
+            size="icon"
             onClick={() =>
               onEditChange(
                 { flipHorizontal: !edits.flipHorizontal },
                 "Flip Horizontal"
               )
             }
-            className="flex-1 gap-2"
+            title="Flip Horizontal"
+            className="flex-1"
           >
-            <FlipHorizontal size={15} />
-            Horizontal
+            <FlipHorizontal size={16} />
           </Button>
           <Button
             variant={edits.flipVertical ? "default" : "outline"}
-            size="sm"
+            size="icon"
             onClick={() =>
               onEditChange(
                 { flipVertical: !edits.flipVertical },
                 "Flip Vertical"
               )
             }
-            className="flex-1 gap-2"
+            title="Flip Vertical"
+            className="flex-1"
           >
-            <FlipVertical size={15} />
-            Vertical
+            <FlipVertical size={16} />
           </Button>
         </div>
       </div>

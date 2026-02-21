@@ -106,18 +106,6 @@ export function DetailPanel({ edits, onEditChange }: DetailPanelProps) {
         step={1}
         onChange={(v) => onEditChange({ median: v }, "Smooth")}
       />
-
-      {/* Grain (Noise) — via edits.grain as a number 0-100 */}
-      <SliderRow
-        label="Grain"
-        value={(edits as ImageEdits & { grain?: number }).grain ?? 0}
-        min={0}
-        max={50}
-        step={1}
-        onChange={(v) =>
-          onEditChange({ grain: v } as Partial<ImageEdits>, "Grain")
-        }
-      />
     </div>
   );
 }

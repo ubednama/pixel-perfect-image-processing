@@ -43,10 +43,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Apply transformations
-    // ROTATION TEMPORARILY DISABLED DUE TO QUALITY DEGRADATION ISSUES
-    // if (edits.rotation && edits.rotation !== 0) {
-    //   sharpInstance = sharpInstance.rotate(edits.rotation, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
-    // }
+    if (edits.rotation && edits.rotation !== 0) {
+      sharpInstance = sharpInstance.rotate(edits.rotation, {
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      });
+    }
 
     if (edits.flipHorizontal) {
       sharpInstance = sharpInstance.flop();
@@ -202,10 +203,14 @@ export async function POST(request: NextRequest) {
       });
     } else {
       // Apply individual color adjustments
-      if (edits.brightness !== 0 || edits.saturation !== 0 || edits.hue !== 0) {
-        const brightness = 1 + edits.brightness / 100;
-        const saturation = 1 + edits.saturation / 100;
-        const hue = edits.hue;
+      if (
+        (edits.brightness && edits.brightness !== 0) ||
+        (edits.saturation && edits.saturation !== 0) ||
+        (edits.hue && edits.hue !== 0)
+      ) {
+        const brightness = 1 + (edits.brightness ?? 0) / 100;
+        const saturation = 1 + (edits.saturation ?? 0) / 100;
+        const hue = edits.hue ?? 0;
 
         sharpInstance = sharpInstance.modulate({
           brightness,
@@ -214,12 +219,12 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Apply contrast separately using linear transformation
-      // contrast=0 → no change (a=1,b=0), contrast=100 → full boost (a=2,b=-128/255)
-      if (edits.contrast !== 0) {
-        const a = 1 + edits.contrast / 100;
-        const b = 128 * (1 - a); // shift so midpoint stays at 128
-        sharpInstance = sharpInstance.linear(a, b);
+      // Apply contrast
+      if (edits.contrast !== 0 || (edits.exposure && edits.exposure !== 0)) {
+        const a_c = 1 + (edits.contrast ?? 0) / 100;
+        const b_c = 128 * (1 - a_c);
+        const a_e = Math.pow(2, edits.exposure ?? 0);
+        sharpInstance = sharpInstance.linear(a_c * a_e, b_c * a_e);
       }
     }
 
@@ -230,12 +235,6 @@ export async function POST(request: NextRequest) {
         g: edits.tint.g,
         b: edits.tint.b,
       });
-    }
-
-    // Apply exposure (EV stops): linear(2^stops, 0)
-    if (edits.exposure && edits.exposure !== 0) {
-      const multiplier = Math.pow(2, edits.exposure);
-      sharpInstance = sharpInstance.linear(multiplier, 0);
     }
 
     // Apply opacity via ensureAlpha (only meaningful for PNG/WebP)
@@ -281,8 +280,13 @@ export async function POST(request: NextRequest) {
       typeof edits.sharpen === "object" &&
       edits.sharpen.enabled
     ) {
+      // Sharp requires sigma to be > 0 (specifically between 0.000001 and 10)
+      const clampedSigma = Math.max(
+        0.000001,
+        Math.min(10, edits.sharpen.sigma || 0.000001)
+      );
       sharpInstance = sharpInstance.sharpen({
-        sigma: edits.sharpen.sigma,
+        sigma: clampedSigma,
         m1: edits.sharpen.m1,
         m2: edits.sharpen.m2,
         x1: edits.sharpen.x1,
@@ -443,6 +447,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
+    console.error("[process-image] Error in pipeline step:", error);
     console.error("[process-image] Error:", error);
     return NextResponse.json(
       {

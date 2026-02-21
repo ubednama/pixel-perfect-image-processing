@@ -1,8 +1,6 @@
 "use client";
 
 import { CropOverlayOnCanvas } from "@/components/CropOverlayOnCanvas";
-import { FilterOverlay } from "@/components/FilterOverlay";
-import { Button } from "@/components/ui/button";
 import {
   hasImageEdits,
   hasOnlyLiveAdjustments,
@@ -55,7 +53,6 @@ export function CanvasViewport({
     height: 0,
   });
   const [isDragging, setIsDragging] = useState(false);
-  const [showFilterOverlay, setShowFilterOverlay] = useState(false);
 
   const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -237,7 +234,7 @@ export function CanvasViewport({
     document.dispatchEvent(new CustomEvent("canvas-leave"));
   };
 
-  const handleApplyFilter = (
+  const _handleApplyFilter = (
     filterEdits: Partial<ImageEdits>,
     filterName: string
   ) => {
@@ -473,37 +470,27 @@ export function CanvasViewport({
         )}
       </AnimatePresence>
 
-      {/* Zoom indicator */}
-      <div className="bg-background/95 border-border/60 absolute bottom-1 left-1 rounded-xl border px-2 py-2 shadow-lg backdrop-blur-md">
+      {/* Zoom indicator & Image Dimensions */}
+      <div className="bg-background/95 border-border/60 absolute bottom-4 left-4 flex items-center gap-3 rounded-xl border px-3 py-2 shadow-lg backdrop-blur-md">
         <span className="text-foreground text-xs font-medium">
           {Math.round(zoom * 100)}%
         </span>
+        {baseDimensions.width > 0 && (
+          <>
+            <div className="bg-border h-3 w-px"></div>
+            <span className="text-muted-foreground text-xs font-medium">
+              {baseDimensions.width} × {baseDimensions.height} px
+            </span>
+          </>
+        )}
       </div>
 
-      {/* Scroll hint */}
-      <div className="bg-background/95 border-border/60 absolute right-1 bottom-1 rounded-xl border px-2 py-0 shadow-lg backdrop-blur-md">
-        <span className="text-muted-foreground text-xs">Scroll to zoom</span>
+      {/* Scroll Hint */}
+      <div className="bg-background/95 border-border/60 absolute right-4 bottom-4 rounded-xl border px-3 py-2 shadow-lg backdrop-blur-md">
+        <span className="text-muted-foreground text-xs font-medium">
+          Scroll to zoom
+        </span>
       </div>
-
-      {/* Filters button */}
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2">
-        <Button
-          onClick={() => setShowFilterOverlay((prev) => !prev)}
-          variant="outline"
-          size="sm"
-          className="bg-background/95 border-border/60 hover:bg-muted/95 hover:border-border/80 shadow-lg backdrop-blur-md transition-all duration-150 hover:shadow-xl"
-        >
-          Filters
-        </Button>
-      </div>
-
-      {/* Filter Overlay */}
-      <FilterOverlay
-        isOpen={showFilterOverlay}
-        onApplyFilter={handleApplyFilter}
-        originalImage={image}
-        notifyOfChange={notifyOfChange}
-      />
 
       {/* Crop overlay */}
       {cropMode && (

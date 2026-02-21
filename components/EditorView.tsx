@@ -10,7 +10,7 @@ import { type ActivePanel, SidebarRail } from "@/components/SidebarRail";
 import { Button } from "@/components/ui/button";
 import type { HistoryEntry, ImageEdits, ImageState } from "@/types/image-edits";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Redo2, Undo2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -566,35 +566,35 @@ export function EditorView({
             >
               {/* Panel header */}
               <div className="border-border flex shrink-0 items-center gap-2 border-b px-4 py-3">
-                <span className="text-foreground text-sm font-semibold capitalize">
+                <span className="text-foreground text-sm font-semibold">
                   {activePanel === "adjust"
                     ? "Adjust"
                     : activePanel === "filters"
                       ? "Filters"
                       : "Crop & Transform"}
                 </span>
-                {activePanel === "adjust" && (
-                  <div className="ml-auto flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleUndo}
-                      disabled={!canUndo}
-                      className="h-7 px-2 text-xs"
-                    >
-                      Undo
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleRedo}
-                      disabled={!canRedo}
-                      className="h-7 px-2 text-xs"
-                    >
-                      Redo
-                    </Button>
-                  </div>
-                )}
+                <div className="ml-auto flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleUndo}
+                    disabled={!canUndo}
+                    className="h-7 w-7 p-0"
+                    title="Undo"
+                  >
+                    <Undo2 size={14} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRedo}
+                    disabled={!canRedo}
+                    className="h-7 w-7 p-0"
+                    title="Redo"
+                  >
+                    <Redo2 size={14} />
+                  </Button>
+                </div>
               </div>
 
               {/* Panel body */}
