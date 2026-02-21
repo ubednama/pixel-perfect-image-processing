@@ -278,7 +278,7 @@ export function EditorHeader({
                 alt="Pixel Perfect Logo"
                 className="h-8 w-8"
               />
-              <h1 className="from-foreground to-foreground/70 bg-linear-to-r bg-clip-text text-2xl font-bold text-transparent">
+              <h1 className="from-foreground to-foreground/70 hidden bg-linear-to-r bg-clip-text text-2xl font-bold text-transparent md:block">
                 Pixel Perfect
               </h1>
             </motion.div>
@@ -290,8 +290,8 @@ export function EditorHeader({
               onClick={handleNewImageClick}
               className="h-8 gap-2 bg-transparent"
             >
-              <Upload size={16} />
-              New Image
+              <Upload size={16} className="shrink-0" />
+              <span className="hidden md:inline">New Image</span>
             </Button>
 
             {/* Hold to Compare */}
@@ -304,14 +304,15 @@ export function EditorHeader({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleBeforeAfterMouseDown}
+                onPointerDown={handleBeforeAfterMouseDown}
+                onPointerUp={handleBeforeAfterMouseUp}
+                onPointerLeave={handleBeforeAfterMouseUp}
+                onPointerCancel={handleBeforeAfterMouseUp}
                 disabled={isPristine}
-                className="h-8 gap-2 bg-transparent select-none"
-                onMouseUp={handleBeforeAfterMouseUp}
-                onMouseLeave={handleBeforeAfterMouseUp}
+                className="h-8 touch-none gap-2 bg-transparent select-none"
               >
-                <Eye size={16} />
-                Hold to Compare
+                <Eye size={16} className="shrink-0" />
+                <span className="hidden md:inline">Hold to Compare</span>
               </Button>
             </motion.div>
           </div>
@@ -336,8 +337,8 @@ export function EditorHeader({
                 disabled={!hasUnsavedChanges || !processedImageUrl}
                 className="flex h-8 items-center gap-2 bg-transparent"
               >
-                <Save size={16} />
-                Save Changes
+                <Save size={16} className="shrink-0" />
+                <span className="hidden md:inline">Save Changes</span>
               </Button>
             </motion.div>
 
@@ -353,8 +354,8 @@ export function EditorHeader({
                 disabled={isPristine}
                 className="h-8 gap-2 bg-transparent"
               >
-                <RotateCcw size={16} />
-                Reset All
+                <RotateCcw size={16} className="shrink-0" />
+                <span className="hidden md:inline">Reset All</span>
               </Button>
             </motion.div>
 
@@ -407,8 +408,8 @@ export function EditorHeader({
                 disabled={!downloadableImageUrl && !processedImageUrl}
                 className="flex h-8 items-center gap-2 bg-transparent"
               >
-                <Download size={16} />
-                Download
+                <Download size={16} className="shrink-0" />
+                <span className="hidden md:inline">Download</span>
               </Button>
             </motion.div>
 

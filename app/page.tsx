@@ -3,7 +3,6 @@
 import { CustomCursor } from "@/components/CustomCursor";
 import { EditorView } from "@/components/EditorView";
 import { LandingView } from "@/components/LandingView";
-import { MobileLandscapeLock } from "@/components/MobileLandscapeLock";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
@@ -21,8 +20,7 @@ export default function Home() {
   return (
     <>
       <CustomCursor />
-      <MobileLandscapeLock />
-      <div className="main-content min-h-screen">
+      <div className="main-content min-h-dvh md:min-h-screen">
         <AnimatePresence mode="wait">
           {!uploadedImage ? (
             <motion.div

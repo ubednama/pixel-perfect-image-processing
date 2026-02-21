@@ -1,9 +1,9 @@
-import type React from "react";
-import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { Analytics } from "@vercel/analytics/next";
+import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
+import type React from "react";
 import { Suspense } from "react";
 import "./globals.css";
 
@@ -25,41 +25,65 @@ export const metadata: Metadata = {
     "resize image",
     "rotate image",
     "browser image editor",
+    "client-side image editing",
+    "no upload photo editor",
     "no signup",
+    "privacy focused image editor",
     "photo filters",
     "image resizer",
+    "image converter",
     "private photo editor",
+    "free online photo editor",
   ],
-  metadataBase: new URL("https://your-domain.com"),
+  authors: [{ name: "Pixel Perfect" }],
+  creator: "Pixel Perfect",
+  publisher: "Pixel Perfect",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "https://pixel-perfect-editor.vercel.app"
+  ),
   alternates: {
-    canonical: "https://your-domain.com",
+    canonical: "/",
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
   openGraph: {
     title: "Pixel Perfect - Free, Fast & Private Online Image Editor",
     description:
-      "The quickest and most private way to edit your photos online. Fast, secure, and completely free.",
-    url: "https://your-domain.com",
+      "The quickest and most private way to edit your photos online. Fast, secure, and completely free in your browser.",
+    url: "/",
+    siteName: "Pixel Perfect",
+    locale: "en_US",
     type: "website",
     images: [
       {
-        url: "https://your-domain.com/og-image.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Pixel Perfect Online Image Editor",
       },
     ],
-    siteName: "Pixel Perfect",
   },
   twitter: {
     card: "summary_large_image",
     title: "Pixel Perfect - Free, Fast & Private Online Image Editor",
     description:
-      "Instantly edit your images online for free. Rotate, crop, resize, apply filters, and more, all from your browser.",
-    images: ["https://your-domain.com/og-image.png"],
+      "Instantly edit your images online for free. Rotate, crop, resize, apply filters, and more, directly in your browser without uploads.",
+    images: ["/og-image.png"],
+    creator: "@pixelperfect",
   },
   icons: {
     icon: [
@@ -68,7 +92,14 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/favicon.svg", sizes: "180x180", type: "image/svg+xml" }],
   },
+  manifest: "/manifest.json",
   generator: "Next.js",
+  applicationName: "Pixel Perfect",
+  appleWebApp: {
+    capable: true,
+    title: "Pixel Perfect",
+    statusBarStyle: "default",
+  },
 };
 
 export const viewport: Viewport = {

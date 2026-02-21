@@ -130,33 +130,6 @@
     background: radial-gradient(circle, var(--tw-gradient-stops));
   }
 
-  @media (max-width: 768px) and (orientation: portrait) {
-    .mobile-landscape-lock {
-      display: flex;
-    }
-    .main-content {
-      display: none;
-    }
-  }
-
-  @media (max-width: 768px) and (orientation: landscape) {
-    .mobile-landscape-lock {
-      display: none;
-    }
-    .main-content {
-      display: block;
-    }
-  }
-
-  @media (min-width: 769px) {
-    .mobile-landscape-lock {
-      display: none;
-    }
-    .main-content {
-      display: block;
-    }
-  }
-
   /* Modern minimal spin buttons (only visible on hover) */
   input[type="number"]::-webkit-inner-spin-button,
   input[type="number"]::-webkit-outer-spin-button {

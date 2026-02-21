@@ -53,6 +53,102 @@ export function CanvasViewport({
     height: 0,
   });
   const [isDragging, setIsDragging] = useState(false);
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const panStartRef = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
+  const currentZoomRef = useRef(zoom);
+  const pinchStartRef = useRef<{ dist: number; zoom: number } | null>(null);
+
+  useEffect(() => {
+    currentZoomRef.current = zoom;
+  }, [zoom]);
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      if (!e.isPrimary) return;
+      setIsDragging(true);
+      panStartRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+        panX: panOffset.x,
+        panY: panOffset.y,
+      };
+      e.currentTarget.setPointerCapture(e.pointerId);
+    },
+    [panOffset]
+  );
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!isDragging || !e.isPrimary) return;
+      const dx = e.clientX - panStartRef.current.x;
+      const dy = e.clientY - panStartRef.current.y;
+      setPanOffset({
+        x: panStartRef.current.panX + dx,
+        y: panStartRef.current.panY + dy,
+      });
+    },
+    [isDragging]
+  );
+
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    if (!e.isPrimary) return;
+    setIsDragging(false);
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  }, []);
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        const dist = Math.hypot(
+          t1.clientX - t2.clientX,
+          t1.clientY - t2.clientY
+        );
+        pinchStartRef.current = { dist, zoom: currentZoomRef.current };
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && pinchStartRef.current) {
+        e.preventDefault();
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        const dist = Math.hypot(
+          t1.clientX - t2.clientX,
+          t1.clientY - t2.clientY
+        );
+        const scale = dist / pinchStartRef.current.dist;
+        const newZoom = Math.max(
+          0.25,
+          Math.min(4, pinchStartRef.current.zoom * scale)
+        );
+        setZoom(newZoom);
+      }
+    };
+
+    const handleTouchEnd = () => {
+      pinchStartRef.current = null;
+    };
+
+    viewport.addEventListener("touchstart", handleTouchStart, {
+      passive: false,
+    });
+    viewport.addEventListener("touchmove", handleTouchMove, { passive: false });
+    viewport.addEventListener("touchend", handleTouchEnd);
+    viewport.addEventListener("touchcancel", handleTouchEnd);
+
+    return () => {
+      viewport.removeEventListener("touchstart", handleTouchStart);
+      viewport.removeEventListener("touchmove", handleTouchMove);
+      viewport.removeEventListener("touchend", handleTouchEnd);
+      viewport.removeEventListener("touchcancel", handleTouchEnd);
+    };
+  }, []);
 
   const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -256,7 +352,7 @@ export function CanvasViewport({
   const computeBaseStyle = useCallback(() => {
     if (showOriginal) {
       return {
-        transform: `scale(${zoom})`,
+        transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
         filter: "none",
       };
     }
@@ -285,6 +381,7 @@ export function CanvasViewport({
 
     // Build transform string from edits
     const transforms: string[] = [];
+    transforms.push(`translate(${panOffset.x}px, ${panOffset.y}px)`);
 
     // Apply zoom and rotation scaling
     let effectiveZoom = zoom;
@@ -346,14 +443,16 @@ export function CanvasViewport({
     baseDimensions,
     viewportDimensions,
     calculateImageTransforms,
+    panOffset.x,
+    panOffset.y,
   ]);
 
   const computeProcessedStyle = useCallback(() => {
     return {
-      transform: `scale(${zoom})`,
+      transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
       filter: "none",
     };
-  }, [zoom]);
+  }, [zoom, panOffset]);
 
   const baseStyle = computeBaseStyle();
   const processedStyle = computeProcessedStyle();
@@ -362,13 +461,16 @@ export function CanvasViewport({
   return (
     <div
       ref={viewportRef}
-      className="from-muted/5 to-muted/15 border-border/30 canvas-viewport relative h-full w-full overflow-hidden rounded-xl border bg-linear-to-br shadow-sm"
+      className="from-muted/5 to-muted/15 border-border/30 canvas-viewport relative h-full w-full touch-none overflow-hidden rounded-xl border bg-linear-to-br shadow-sm"
       data-canvas-area="true"
-      style={{ minHeight: "600px", cursor: "none" }}
+      style={{ minHeight: "600px", cursor: isDragging ? "grabbing" : "grab" }}
       onMouseEnter={handleCanvasMouseEnter}
       onMouseLeave={handleCanvasMouseLeave}
-      onMouseDown={() => setIsDragging(true)}
-      onMouseUp={() => setIsDragging(false)}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerUp}
+      onPointerCancel={handlePointerUp}
     >
       <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-4">
         {/* Base Image Layer (Optimistic UI) */}
@@ -461,11 +563,9 @@ export function CanvasViewport({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.1 }}
-            className="bg-background/95 border-border/60 absolute top-6 left-6 rounded-xl border px-4 py-2 shadow-lg backdrop-blur-md"
+            className="bg-background/95 border-border/60 absolute top-2 left-2 rounded-xl border px-2 py-1 text-xs shadow-lg backdrop-blur-md sm:top-6 sm:left-6 sm:px-4 sm:py-2 sm:text-sm"
           >
-            <span className="text-foreground text-sm font-medium">
-              Original
-            </span>
+            <span className="text-foreground font-medium">Original</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -486,7 +586,7 @@ export function CanvasViewport({
       </div>
 
       {/* Scroll Hint */}
-      <div className="bg-background/95 border-border/60 absolute right-4 bottom-4 rounded-xl border px-3 py-2 shadow-lg backdrop-blur-md">
+      <div className="bg-background/95 border-border/60 absolute right-4 bottom-4 hidden rounded-xl border px-3 py-2 shadow-lg backdrop-blur-md md:block">
         <span className="text-muted-foreground text-xs font-medium">
           Scroll to zoom
         </span>
