@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import type { ImageEdits } from "@/types/image-edits";
+import { RotateCcw } from "lucide-react";
 
 interface ColorPanelProps {
   edits: ImageEdits;
@@ -32,9 +33,32 @@ function SliderRow({
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <Label className="text-muted-foreground text-xs font-medium">
-          {label}
-        </Label>
+        <div className="flex items-center gap-2">
+          <Label className="text-muted-foreground text-xs font-medium">
+            {label}
+          </Label>
+          {value !==
+            (label === "Saturation" || label === "Hue" || label === "Brightness"
+              ? 0
+              : 255) && (
+            <button
+              type="button"
+              onClick={() =>
+                onChange(
+                  label === "Saturation" ||
+                    label === "Hue" ||
+                    label === "Brightness"
+                    ? 0
+                    : 255
+                )
+              }
+              className="text-muted-foreground hover:text-foreground transition-colors md:hidden"
+              title={`Reset ${label}`}
+            >
+              <RotateCcw size={10} />
+            </button>
+          )}
+        </div>
         <span className="text-foreground text-xs font-semibold tabular-nums">
           {formatValue ? formatValue(value) : value}
         </span>
@@ -53,7 +77,7 @@ function SliderRow({
 
 export function ColorPanel({ edits, onEditChange }: ColorPanelProps) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <SliderRow
         label="Saturation"
         value={edits.saturation}

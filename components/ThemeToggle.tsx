@@ -1,8 +1,8 @@
 "use client";
-import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -10,9 +10,9 @@ export function ThemeToggle() {
   return (
     <Button
       variant="outline"
-      size="sm"
+      size="icon"
       onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-      className="relative overflow-hidden"
+      className="relative h-8 w-8 shrink-0 overflow-hidden"
     >
       <motion.div
         initial={false}

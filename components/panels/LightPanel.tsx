@@ -3,6 +3,7 @@
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import type { ImageEdits } from "@/types/image-edits";
+import { RotateCcw } from "lucide-react";
 
 interface LightPanelProps {
   edits: ImageEdits;
@@ -29,9 +30,23 @@ function SliderRow({
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <Label className="text-muted-foreground text-xs font-medium">
-          {label}
-        </Label>
+        <div className="flex items-center gap-2">
+          <Label className="text-muted-foreground text-xs font-medium">
+            {label}
+          </Label>
+          {value !== min && value !== (label === "Gamma" ? 1.0 : 0) && (
+            <button
+              type="button"
+              onClick={() =>
+                onChange(label === "Gamma" ? 1.0 : label === "Exposure" ? 0 : 0)
+              }
+              className="text-muted-foreground hover:text-foreground transition-colors md:hidden"
+              title={`Reset ${label}`}
+            >
+              <RotateCcw size={10} />
+            </button>
+          )}
+        </div>
         <span className="text-foreground text-xs font-semibold tabular-nums">
           {formatValue ? formatValue(value) : value}
         </span>
@@ -50,7 +65,7 @@ function SliderRow({
 
 export function LightPanel({ edits, onEditChange }: LightPanelProps) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <SliderRow
         label="Brightness"
         value={edits.brightness}

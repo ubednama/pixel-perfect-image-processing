@@ -24,6 +24,7 @@ interface CanvasViewportProps {
   notifyOfChange?: () => void;
   cropMode?: boolean;
   onCropModeToggle?: (enabled: boolean) => void;
+  onShowOriginalToggle?: (show: boolean) => void;
   processedImage?: string;
 }
 
@@ -37,6 +38,7 @@ export function CanvasViewport({
   notifyOfChange,
   cropMode = false,
   onCropModeToggle: _onCropModeToggle,
+  onShowOriginalToggle,
   processedImage,
 }: CanvasViewportProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -571,19 +573,50 @@ export function CanvasViewport({
       </AnimatePresence>
 
       {/* Zoom indicator & Image Dimensions */}
-      <div className="bg-background/95 border-border/60 absolute bottom-4 left-4 flex items-center gap-3 rounded-xl border px-3 py-2 shadow-lg backdrop-blur-md">
-        <span className="text-foreground text-xs font-medium">
-          {Math.round(zoom * 100)}%
-        </span>
+      <div className="bg-background/95 border-border/60 absolute bottom-1.5 left-1.5 flex items-center gap-3 rounded-xl border px-1.5 py-1 text-[10px] font-medium shadow-lg backdrop-blur-md sm:bottom-4 sm:left-4 sm:px-3 sm:py-2 sm:text-xs">
+        <span className="text-foreground">{Math.round(zoom * 100)}%</span>
         {baseDimensions.width > 0 && (
           <>
             <div className="bg-border h-3 w-px"></div>
-            <span className="text-muted-foreground text-xs font-medium">
+            <span className="text-muted-foreground">
               {baseDimensions.width} × {baseDimensions.height} px
             </span>
           </>
         )}
       </div>
+
+      {/* Mobile Compare Button */}
+      {onShowOriginalToggle && hasImageEdits(edits) && (
+        <div className="absolute top-2 right-2 z-40 sm:top-4 sm:right-4 md:hidden">
+          <button
+            type="button"
+            className="bg-background/95 border-border/60 active:bg-muted flex h-9 items-center gap-2 rounded-xl border px-3 shadow-lg backdrop-blur-md"
+            onPointerDown={() => onShowOriginalToggle(true)}
+            onPointerUp={() => onShowOriginalToggle(false)}
+            onPointerLeave={() => onShowOriginalToggle(false)}
+            onPointerCancel={() => onShowOriginalToggle(false)}
+            title="Hold to Compare"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            <span className="hidden text-xs font-medium md:inline">
+              Compare
+            </span>
+          </button>
+        </div>
+      )}
 
       {/* Scroll Hint */}
       <div className="bg-background/95 border-border/60 absolute right-4 bottom-4 hidden rounded-xl border px-3 py-2 shadow-lg backdrop-blur-md md:block">

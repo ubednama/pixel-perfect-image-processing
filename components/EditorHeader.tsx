@@ -58,6 +58,19 @@ export function EditorHeader({
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
 
+  const getOriginalFormat = () => {
+    if (!originalFilename) return null;
+    const ext = originalFilename.split(".").pop()?.toLowerCase();
+    if (ext === "jpg" || ext === "jpeg") return "jpeg";
+    if (ext === "png") return "png";
+    if (ext === "webp") return "webp";
+    if (ext === "avif") return "avif";
+    if (ext === "tiff") return "tiff";
+    if (ext === "gif") return "gif";
+    return null;
+  };
+  const originalFormat = getOriginalFormat();
+
   const handleNewImageClick = () => {
     if (hasUnsavedChanges) {
       setShowConfirmDialog(true);
@@ -260,9 +273,9 @@ export function EditorHeader({
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2 }}
-        className="border-border bg-background/80 sticky top-0 z-40 flex h-16 items-center border-b backdrop-blur-sm"
+        className="border-border bg-background/80 sticky top-0 z-40 flex h-14 shrink-0 items-center border-b backdrop-blur-sm sm:h-16"
       >
-        <div className="flex h-full w-full items-center justify-between px-6">
+        <div className="flex h-full w-full items-center justify-between px-1 sm:px-6">
           {/* Left group: Title, New Image, Hold to Compare */}
           <div className="flex items-center gap-3">
             {/* Logo and Title */}
@@ -309,7 +322,7 @@ export function EditorHeader({
                 onPointerLeave={handleBeforeAfterMouseUp}
                 onPointerCancel={handleBeforeAfterMouseUp}
                 disabled={isPristine}
-                className="h-8 touch-none gap-2 bg-transparent select-none"
+                className="hidden h-8 touch-none gap-2 bg-transparent select-none md:flex"
               >
                 <Eye size={16} className="shrink-0" />
                 <span className="hidden md:inline">Hold to Compare</span>
@@ -322,7 +335,7 @@ export function EditorHeader({
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.2, delay: 0.1 }}
-            className="flex items-center space-x-3"
+            className="flex items-center space-x-2 sm:space-x-3"
           >
             <motion.div
               initial={{ opacity: 0.5 }}
@@ -368,28 +381,51 @@ export function EditorHeader({
               className="flex items-center"
             >
               <Select
-                value={exportFormat}
+                value={
+                  exportFormat === "original"
+                    ? originalFormat || "png"
+                    : exportFormat
+                }
                 onValueChange={(value) =>
                   onExportFormatChange?.(
-                    value as
-                      | "png"
-                      | "jpeg"
-                      | "webp"
-                      | "avif"
-                      | "tiff"
-                      | "gif"
-                      | "original"
+                    value as "png" | "jpeg" | "webp" | "avif" | "tiff" | "gif"
                   )
                 }
               >
-                <SelectTrigger className="border-border/50 h-8 w-24 bg-transparent text-xs">
+                <SelectTrigger className="border-border/50 align-center h-8 w-16 bg-transparent px-1 text-center text-xs sm:w-24">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="png">PNG</SelectItem>
-                  <SelectItem value="jpeg">JPEG</SelectItem>
-                  <SelectItem value="webp">WebP</SelectItem>
-                  <SelectItem value="original">Original</SelectItem>
+                  <SelectItem
+                    value="png"
+                    className={
+                      originalFormat === "png"
+                        ? "font-bold text-emerald-500"
+                        : ""
+                    }
+                  >
+                    PNG
+                  </SelectItem>
+                  <SelectItem
+                    value="jpeg"
+                    className={
+                      originalFormat === "jpeg"
+                        ? "font-bold text-emerald-500"
+                        : ""
+                    }
+                  >
+                    JPEG
+                  </SelectItem>
+                  <SelectItem
+                    value="webp"
+                    className={
+                      originalFormat === "webp"
+                        ? "font-bold text-emerald-500"
+                        : ""
+                    }
+                  >
+                    WebP
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </motion.div>

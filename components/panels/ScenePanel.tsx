@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import type { ImageEdits } from "@/types/image-edits";
+import { RotateCcw } from "lucide-react";
 
 interface ScenePanelProps {
   edits: ImageEdits;
@@ -12,13 +13,25 @@ interface ScenePanelProps {
 
 export function ScenePanel({ edits, onEditChange }: ScenePanelProps) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Opacity */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <Label className="text-muted-foreground text-xs font-medium">
-            Opacity
-          </Label>
+          <div className="flex items-center gap-2">
+            <Label className="text-muted-foreground text-xs font-medium">
+              Opacity
+            </Label>
+            {edits.opacity !== 1 && edits.opacity !== undefined && (
+              <button
+                type="button"
+                onClick={() => onEditChange({ opacity: 1 }, "Opacity")}
+                className="text-muted-foreground hover:text-foreground transition-colors md:hidden"
+                title="Reset Opacity"
+              >
+                <RotateCcw size={10} />
+              </button>
+            )}
+          </div>
           <span className="text-foreground text-xs font-semibold tabular-nums">
             {Math.round((edits.opacity ?? 1) * 100)}%
           </span>

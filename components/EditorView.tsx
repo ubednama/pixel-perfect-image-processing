@@ -214,7 +214,7 @@ export function EditorView({
 
   // UI state
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
-  const [activePanel, setActivePanel] = useState<ActivePanel>("adjust");
+  const [activePanel, setActivePanel] = useState<ActivePanel>(null);
   const [zoom, setZoom] = useState(1);
   const [viewportBounds, setViewportBounds] = useState({
     x: 0,
@@ -457,7 +457,7 @@ export function EditorView({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="bg-background min-h-screen"
+      className="bg-background fixed inset-0 z-50 flex flex-col overflow-hidden overscroll-none"
     >
       <EditorHeader
         hasUnsavedChanges={hasUnsavedChanges}
@@ -483,7 +483,7 @@ export function EditorView({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2, delay: 0.05 }}
-        className="relative flex h-[calc(100vh-4rem)] flex-col overflow-hidden md:flex-row"
+        className="relative flex flex-1 flex-col overflow-hidden md:flex-row"
       >
         {/* Left Sidebar - Original Preview */}
         <motion.div
@@ -494,7 +494,7 @@ export function EditorView({
             width: leftSidebarOpen ? 240 : 0,
           }}
           transition={{ duration: 0.2, ease: "easeInOut" }}
-          className="border-border bg-card/50 relative overflow-hidden border-r backdrop-blur-sm"
+          className="border-border bg-card/50 relative hidden overflow-hidden border-r backdrop-blur-sm md:block"
           style={{ width: leftSidebarOpen ? 240 : 0 }}
         >
           <Button
@@ -538,7 +538,7 @@ export function EditorView({
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.2, delay: 0.1 }}
-          className="min-h-0 flex-1 p-2 md:p-4"
+          className="relative min-h-0 flex-1 p-2 md:p-4"
         >
           <CanvasViewport
             image={imageState.baseImage}
@@ -549,8 +549,19 @@ export function EditorView({
             showOriginal={showOriginal}
             cropMode={cropMode}
             onCropModeToggle={setCropMode}
+            onShowOriginalToggle={setShowOriginal}
             processedImage={imageState.processedImageUrl}
           />
+
+          {/* Mobile Floating Original Preview (Picture-in-Picture) */}
+          <div className="border-border bg-card/80 absolute right-4 bottom-4 z-30 aspect-auto h-28 w-auto overflow-hidden rounded-xl border shadow-2xl backdrop-blur-md md:hidden">
+            <OriginalPreview
+              originalImage={imageState.originalImage}
+              zoom={zoom}
+              viewportBounds={viewportBounds}
+              compact
+            />
+          </div>
         </motion.div>
 
         {/* Right Panel — slides in when a panel is active */}
@@ -561,10 +572,10 @@ export function EditorView({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="border-border bg-card/95 md:bg-card/50 z-40 flex h-[40vh] w-full shrink-0 flex-col overflow-hidden border-t shadow-xl backdrop-blur-xl md:h-full md:w-[280px] md:border-t-0 md:border-l md:shadow-none md:backdrop-blur-sm"
+              className="border-border bg-card/95 md:bg-card/50 z-40 flex h-[30vh] w-full shrink-0 flex-col overflow-hidden border-t shadow-xl backdrop-blur-xl md:h-full md:w-[280px] md:border-t-0 md:border-l md:shadow-none md:backdrop-blur-sm"
             >
               {/* Panel header */}
-              <div className="border-border flex shrink-0 items-center gap-2 border-b px-4 py-3">
+              <div className="border-border flex shrink-0 items-center justify-between gap-2 border-b px-4 py-3">
                 <AnimatePresence mode="wait">
                   <motion.span
                     key={activePanel}
@@ -603,6 +614,16 @@ export function EditorView({
                     <Redo2 size={14} />
                   </Button>
                 </div>
+                {/* Mobile collapse button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setActivePanel(null)}
+                  className="ml-1 h-7 w-7 p-0 md:hidden"
+                  title="Close Panel"
+                >
+                  <ChevronLeft className="h-4 w-4 -rotate-90" />
+                </Button>
               </div>
 
               {/* Panel body */}

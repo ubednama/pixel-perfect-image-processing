@@ -160,8 +160,8 @@ export function FilterPanel({
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
-      <div className="flex-1 overflow-x-auto overflow-y-auto p-3 md:overflow-x-hidden md:overflow-y-auto">
-        <div className="flex min-w-max flex-row items-center gap-3 pb-2 md:grid md:min-w-0 md:grid-cols-2 md:items-stretch md:pb-0">
+      <div className="flex-1 overflow-x-hidden overflow-y-auto p-3">
+        <div className="grid grid-cols-3 gap-3 pb-2 md:grid-cols-2 md:pb-0">
           <AnimatePresence>
             {filterPresets.map((preset, index) => (
               <motion.button
@@ -170,7 +170,7 @@ export function FilterPanel({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.2, delay: index * 0.04 }}
                 onClick={() => handleSelect(preset)}
-                className="border-border bg-muted hover:border-primary flex w-[100px] shrink-0 flex-col items-center gap-1.5 overflow-hidden rounded-xl border p-1.5 transition-all hover:scale-105 hover:shadow-md md:w-auto md:shrink"
+                className="border-border bg-muted hover:border-primary flex w-full flex-col items-center gap-1.5 overflow-hidden rounded-xl border p-1.5 transition-all hover:scale-105 hover:shadow-md"
               >
                 <canvas
                   ref={(el) => {

@@ -225,7 +225,7 @@ export function LiveCanvas({
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.1 }}
-                  className="bg-background/90 border-border/50 absolute top-4 left-4 rounded-full border px-3 py-1 backdrop-blur-sm"
+                  className="bg-background/90 border-border/50 absolute top-2 left-2 rounded-full border px-1 py-0.5 text-xs backdrop-blur-sm sm:top-4 sm:left-4 sm:px-3 sm:py-1"
                 >
                   <span className="text-sm font-medium">Original</span>
                 </motion.div>

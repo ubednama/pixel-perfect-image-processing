@@ -90,36 +90,41 @@ export function LandingView({ onImageUpload }: LandingViewProps) {
   );
 
   return (
-    <div className="from-background via-background to-muted/10 flex min-h-screen flex-col items-center justify-center bg-linear-to-br p-8">
+    <div className="from-background via-background to-muted/10 flex min-h-screen flex-col items-center justify-center bg-linear-to-br p-4 md:p-8">
       {/* Header Content */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="mb-12 max-w-2xl text-center"
+        className="mb-8 max-w-2xl text-center md:mb-12"
       >
         {/* Logo */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
-          className="mb-8 flex justify-center"
+          className="mb-6 flex justify-center md:mb-8"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.svg"
             alt="Pixel Perfect Logo"
-            className="h-24 w-24 md:h-32 md:w-32"
+            className="h-20 w-20 md:h-32 md:w-32"
           />
         </motion.div>
 
-        <h1 className="from-foreground to-foreground/80 mb-4 bg-linear-to-r bg-clip-text text-5xl font-bold text-transparent md:text-6xl">
+        <h1
+          className="from-foreground to-foreground/80 mb-3 bg-linear-to-r bg-clip-text text-4xl font-bold text-transparent md:mb-4 md:text-6xl"
+          title="Pixel Perfect - Free Online Image Editor"
+        >
           Pixel Perfect
         </h1>
-        <h2 className="text-muted-foreground mb-3 text-xl font-medium md:text-2xl">
-          Your Instant Image Editing Destination.
+        <h2 className="text-muted-foreground mb-3 text-lg font-medium md:text-2xl">
+          Your Instant{" "}
+          <span className="text-primary font-semibold">Image Editing</span>{" "}
+          Destination.
         </h2>
-        <p className="text-muted-foreground text-base leading-relaxed">
+        <p className="text-muted-foreground text-sm leading-relaxed md:text-base">
           Free, fast, and entirely in your browser. No uploads, no accounts.
           Just pure editing power.
         </p>
@@ -136,7 +141,7 @@ export function LandingView({ onImageUpload }: LandingViewProps) {
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
-          className={`relative rounded-xl border-2 border-dashed p-10 text-center transition-all duration-200 ease-out ${
+          className={`relative rounded-xl border-2 border-dashed p-6 text-center transition-all duration-200 ease-out md:p-10 ${
             isDragOver
               ? "border-primary bg-primary/5 shadow-md"
               : "border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/10"
