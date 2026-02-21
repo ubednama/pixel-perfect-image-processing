@@ -483,7 +483,7 @@ export function EditorView({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2, delay: 0.05 }}
-        className="relative flex h-[calc(100vh-4rem)]"
+        className="relative flex h-[calc(100vh-4rem)] flex-col overflow-hidden md:flex-row"
       >
         {/* Left Sidebar - Original Preview */}
         <motion.div
@@ -538,7 +538,7 @@ export function EditorView({
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.2, delay: 0.1 }}
-          className="flex-1 p-4"
+          className="min-h-0 flex-1 p-2 md:p-4"
         >
           <CanvasViewport
             image={imageState.baseImage}
@@ -557,22 +557,30 @@ export function EditorView({
         <AnimatePresence>
           {activePanel && (
             <motion.div
-              key={activePanel}
-              initial={{ opacity: 0, width: 0 }}
-              animate={{ opacity: 1, width: 280 }}
-              exit={{ opacity: 0, width: 0 }}
-              transition={{ duration: 0.2, ease: "easeInOut" }}
-              className="border-border bg-card/50 flex h-full flex-col overflow-hidden border-l backdrop-blur-sm"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="border-border bg-card/95 md:bg-card/50 z-40 flex h-[40vh] w-full shrink-0 flex-col overflow-hidden border-t shadow-xl backdrop-blur-xl md:h-full md:w-[280px] md:border-t-0 md:border-l md:shadow-none md:backdrop-blur-sm"
             >
               {/* Panel header */}
               <div className="border-border flex shrink-0 items-center gap-2 border-b px-4 py-3">
-                <span className="text-foreground text-sm font-semibold">
-                  {activePanel === "adjust"
-                    ? "Adjust"
-                    : activePanel === "filters"
-                      ? "Filters"
-                      : "Crop & Transform"}
-                </span>
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={activePanel}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ duration: 0.15 }}
+                    className="text-foreground inline-block text-sm font-semibold"
+                  >
+                    {activePanel === "adjust"
+                      ? "Adjust"
+                      : activePanel === "filters"
+                        ? "Filters"
+                        : "Crop & Transform"}
+                  </motion.span>
+                </AnimatePresence>
                 <div className="ml-auto flex gap-1">
                   <Button
                     variant="ghost"
@@ -598,30 +606,41 @@ export function EditorView({
               </div>
 
               {/* Panel body */}
-              <div className="min-h-0 flex-1">
-                {activePanel === "adjust" && (
-                  <AdjustPanel
-                    edits={imageState.edits}
-                    onEditChange={handleEditChange}
-                  />
-                )}
-                {activePanel === "filters" && (
-                  <FilterPanel
-                    originalImage={imageState.originalImage}
-                    onApplyFilter={(edits, name) =>
-                      handleEditChange(edits, `Filter: ${name}`)
-                    }
-                    notifyOfChange={notifyOfChange}
-                  />
-                )}
-                {activePanel === "crop" && (
-                  <div className="overflow-y-auto p-4">
-                    <CropTransformPanel
-                      edits={imageState.edits}
-                      onEditChange={handleEditChange}
-                    />
-                  </div>
-                )}
+              <div className="relative min-h-0 flex-1">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activePanel}
+                    initial={{ opacity: 0, x: 15 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -15 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="absolute inset-0 flex flex-col"
+                  >
+                    {activePanel === "adjust" && (
+                      <AdjustPanel
+                        edits={imageState.edits}
+                        onEditChange={handleEditChange}
+                      />
+                    )}
+                    {activePanel === "filters" && (
+                      <FilterPanel
+                        originalImage={imageState.originalImage}
+                        onApplyFilter={(edits, name) =>
+                          handleEditChange(edits, `Filter: ${name}`)
+                        }
+                        notifyOfChange={notifyOfChange}
+                      />
+                    )}
+                    {activePanel === "crop" && (
+                      <div className="flex-1 overflow-y-auto p-4">
+                        <CropTransformPanel
+                          edits={imageState.edits}
+                          onEditChange={handleEditChange}
+                        />
+                      </div>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </motion.div>
           )}

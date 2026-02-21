@@ -49,7 +49,7 @@ export function SidebarRail({ activePanel, onPanelChange }: SidebarRailProps) {
   };
 
   return (
-    <div className="border-border bg-card/80 flex h-full w-14 flex-col items-center gap-1 border-l py-4 backdrop-blur-sm">
+    <div className="border-border bg-card/80 z-50 flex h-[60px] w-full shrink-0 flex-row items-center justify-center gap-2 overflow-x-auto border-t px-4 py-2 backdrop-blur-sm md:h-full md:w-14 md:flex-col md:gap-1 md:overflow-visible md:border-t-0 md:border-l md:px-0 md:py-4">
       <RailButton
         id="adjust"
         label="Adjust"

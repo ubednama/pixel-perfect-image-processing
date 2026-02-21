@@ -159,32 +159,34 @@ export function FilterPanel({
   };
 
   return (
-    <div className="h-full overflow-y-auto p-3">
-      <div className="grid grid-cols-2 gap-3">
-        <AnimatePresence>
-          {filterPresets.map((preset, index) => (
-            <motion.button
-              key={preset.name}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.2, delay: index * 0.04 }}
-              onClick={() => handleSelect(preset)}
-              className="border-border bg-muted hover:border-primary flex flex-col items-center gap-1.5 overflow-hidden rounded-xl border p-1.5 transition-all hover:scale-105 hover:shadow-md"
-            >
-              <canvas
-                ref={(el) => {
-                  canvasRefs.current[preset.name] = el;
-                }}
-                className="aspect-square w-full rounded-lg object-cover"
-                width={100}
-                height={100}
-              />
-              <span className="text-foreground w-full text-center text-[11px] leading-none font-medium">
-                {preset.name}
-              </span>
-            </motion.button>
-          ))}
-        </AnimatePresence>
+    <div className="flex h-full w-full flex-col overflow-hidden">
+      <div className="flex-1 overflow-x-auto overflow-y-auto p-3 md:overflow-x-hidden md:overflow-y-auto">
+        <div className="flex min-w-max flex-row items-center gap-3 pb-2 md:grid md:min-w-0 md:grid-cols-2 md:items-stretch md:pb-0">
+          <AnimatePresence>
+            {filterPresets.map((preset, index) => (
+              <motion.button
+                key={preset.name}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.2, delay: index * 0.04 }}
+                onClick={() => handleSelect(preset)}
+                className="border-border bg-muted hover:border-primary flex w-[100px] shrink-0 flex-col items-center gap-1.5 overflow-hidden rounded-xl border p-1.5 transition-all hover:scale-105 hover:shadow-md md:w-auto md:shrink"
+              >
+                <canvas
+                  ref={(el) => {
+                    canvasRefs.current[preset.name] = el;
+                  }}
+                  className="aspect-square w-full rounded-lg object-cover"
+                  width={100}
+                  height={100}
+                />
+                <span className="text-foreground w-full text-center text-[11px] leading-none font-medium">
+                  {preset.name}
+                </span>
+              </motion.button>
+            ))}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
