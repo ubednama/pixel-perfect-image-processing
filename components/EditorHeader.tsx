@@ -29,6 +29,7 @@ interface EditorHeaderProps {
   onReset: () => void;
   onSaveChanges: () => void;
   processedImageUrl?: string;
+  downloadableImageUrl?: string;
   onBeforeAfterToggle?: (showOriginal: boolean) => void;
   targetKB?: number;
   exportFormat?: "png" | "jpeg" | "webp" | "avif" | "tiff" | "gif" | "original";
@@ -44,6 +45,7 @@ export function EditorHeader({
   onReset,
   onSaveChanges,
   processedImageUrl,
+  downloadableImageUrl,
   onBeforeAfterToggle,
   targetKB,
   exportFormat = "png",
@@ -77,7 +79,8 @@ export function EditorHeader({
   };
 
   const handleDownload = async () => {
-    if (!processedImageUrl) {
+    const urlForDownload = downloadableImageUrl || processedImageUrl;
+    if (!urlForDownload) {
       toast.error("No processed image available for download");
       return;
     }
@@ -87,7 +90,7 @@ export function EditorHeader({
     }
 
     try {
-      let urlToDownload = processedImageUrl;
+      let urlToDownload = urlForDownload;
       let mimeType = "image/png";
       let ext = "png";
 
@@ -97,17 +100,26 @@ export function EditorHeader({
       } else if (exportFormat === "webp") {
         mimeType = "image/webp";
         ext = "webp";
+      } else if (exportFormat === "avif") {
+        mimeType = "image/avif";
+        ext = "avif";
+      } else if (exportFormat === "tiff") {
+        mimeType = "image/tiff";
+        ext = "tiff";
+      } else if (exportFormat === "gif") {
+        mimeType = "image/gif";
+        ext = "gif";
       }
 
       if (targetKB && targetKB > 0) {
         urlToDownload = await reencodeToTarget(
-          processedImageUrl,
+          urlForDownload,
           targetKB,
           mimeType
         );
       } else {
         // Re-encode to selected format even without target size
-        urlToDownload = await reencodeToFormat(processedImageUrl, mimeType);
+        urlToDownload = await reencodeToFormat(urlForDownload, mimeType);
       }
 
       // Generate filename based on original filename
@@ -285,9 +297,9 @@ export function EditorHeader({
             {/* Hold to Compare */}
             <motion.div
               initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: isPristine ? 0.5 : 1 }}
+              animate={{ opacity: isPristine ? 0.5 : 1, y: 0 }}
               transition={{ duration: 0.2 }}
-              className="flex h-full items-center justify-center"
+              className="flex items-center"
             >
               <Button
                 variant="outline"
@@ -315,13 +327,14 @@ export function EditorHeader({
               initial={{ opacity: 0.5 }}
               animate={{ opacity: !isPristine && processedImageUrl ? 1 : 0.5 }}
               transition={{ duration: 0.2 }}
+              className="flex items-center"
             >
               <Button
                 variant="outline"
                 size="sm"
                 onClick={onSaveChanges}
                 disabled={!hasUnsavedChanges || !processedImageUrl}
-                className="h-8 gap-2 bg-transparent"
+                className="flex h-8 items-center gap-2 bg-transparent"
               >
                 <Save size={16} />
                 Save Changes
@@ -347,8 +360,11 @@ export function EditorHeader({
 
             <motion.div
               initial={{ opacity: 0.5 }}
-              animate={{ opacity: processedImageUrl ? 1 : 0.5 }}
+              animate={{
+                opacity: downloadableImageUrl || processedImageUrl ? 1 : 0.5,
+              }}
               transition={{ duration: 0.2 }}
+              className="flex items-center"
             >
               <Select
                 value={exportFormat}
@@ -379,15 +395,17 @@ export function EditorHeader({
 
             <motion.div
               initial={{ opacity: 0.5 }}
-              animate={{ opacity: processedImageUrl ? 1 : 0.5 }}
+              animate={{
+                opacity: downloadableImageUrl || processedImageUrl ? 1 : 0.5,
+              }}
               transition={{ duration: 0.2 }}
             >
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleDownload}
-                disabled={!processedImageUrl}
-                className="h-8 gap-2 bg-transparent"
+                disabled={!downloadableImageUrl && !processedImageUrl}
+                className="flex h-8 items-center gap-2 bg-transparent"
               >
                 <Download size={16} />
                 Download

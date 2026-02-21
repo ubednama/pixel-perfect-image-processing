@@ -53,6 +53,8 @@ export interface ImageEdits {
   };
   grayscale: boolean;
   negate: boolean;
+  exposure: number; // stops: -3 to +3, applied as linear multiplier (2^stops)
+  opacity: number; // 0.0 to 1.0, applied via ensureAlpha (PNG/WebP only)
 
   // Filters and effects
   blur: number;

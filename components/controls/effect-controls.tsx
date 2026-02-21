@@ -26,19 +26,19 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
 
   const handleBlurChange = (value: number[]) => {
     const percent = value[0];
-    const px = Number(((percent / 100) * 2).toFixed(1));
+    const px = Number(((percent / 100) * 10).toFixed(1));
     onEditChange({ blur: px });
   };
 
   const handleBlurInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const percent = Number.parseInt(e.target.value) || 0;
     const clampedPercent = Math.max(0, Math.min(100, percent));
-    const px = Number(((clampedPercent / 100) * 2).toFixed(1));
+    const px = Number(((clampedPercent / 100) * 10).toFixed(1));
     onEditChange({ blur: px });
   };
 
   const getBlurPercent = () => {
-    return Math.min(100, Math.round((edits.blur / 2) * 100));
+    return Math.min(100, Math.round((edits.blur / 10) * 100));
   };
 
   const handleSharpenChange = (value: number[]) => {
@@ -102,7 +102,7 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
 
   const handleGammaInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number.parseFloat(e.target.value) || 1;
-    const clampedValue = Math.max(0.1, Math.min(3, value));
+    const clampedValue = Math.max(1.0, Math.min(3, value));
     onEditChange({ gamma: clampedValue });
   };
 
@@ -187,7 +187,7 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
                 onChange={handleBlurInputChange}
                 min={0}
                 max={100}
-                className="h-8 w-10 px-1 py-0.5 text-right text-xs"
+                className="h-8 w-12 px-1 py-0.5 text-right text-xs"
               />
             </div>
             <span className="text-muted-foreground w-3 text-xs">%</span>
@@ -226,7 +226,7 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
                 onChange={handleSharpenInputChange}
                 min={0}
                 max={100}
-                className="h-8 w-10 px-1 py-0.5 text-right text-xs"
+                className="h-8 w-12 px-1 py-0.5 text-right text-xs"
               />
             </div>
             <span className="text-muted-foreground w-3 text-xs">%</span>
@@ -264,7 +264,7 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
                 onChange={handleNoiseInputChange}
                 min={0}
                 max={100}
-                className="h-8 w-10 px-1 py-0.5 text-right text-xs"
+                className="h-8 w-12 px-1 py-0.5 text-right text-xs"
               />
             </div>
             <span className="text-muted-foreground w-3 text-xs">%</span>
@@ -301,10 +301,10 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
                 type="number"
                 value={edits.gamma}
                 onChange={handleGammaInputChange}
-                min={0.1}
+                min={1.0}
                 max={3}
                 step={0.1}
-                className="h-8 w-10 px-1 py-0.5 text-right text-xs"
+                className="h-8 w-12 px-1 py-0.5 text-right text-xs"
               />
             </div>
             <span className="text-muted-foreground w-3 text-xs">γ</span>
@@ -323,7 +323,7 @@ export function EffectControls({ edits, onEditChange }: EffectControlsProps) {
           <Slider
             value={[edits.gamma]}
             onValueChange={handleGammaChange}
-            min={0.1}
+            min={1.0}
             max={3}
             step={0.1}
             className="w-full"

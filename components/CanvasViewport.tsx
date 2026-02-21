@@ -54,8 +54,8 @@ export function CanvasViewport({
     width: 0,
     height: 0,
   });
-  const [showFilterOverlay, setShowFilterOverlay] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [showFilterOverlay, setShowFilterOverlay] = useState(false);
 
   const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -103,9 +103,12 @@ export function CanvasViewport({
   }, []);
 
   const handleWheel = useCallback((e: WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    setZoom((prev) => Math.max(0.25, Math.min(4, prev * delta)));
+    // Only zoom if dragging pinch (trackpad) or holding Ctrl/Cmd (mouse wheel)
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
+      setZoom((prev) => Math.max(0.25, Math.min(4, prev * delta)));
+    }
   }, []);
 
   useEffect(() => {
@@ -433,17 +436,6 @@ export function CanvasViewport({
         )}
       </div>
 
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
-        <Button
-          onClick={() => setShowFilterOverlay(true)}
-          variant="outline"
-          size="sm"
-          className="bg-background/95 border-border/60 hover:bg-muted/95 hover:border-border/80 shadow-lg backdrop-blur-md transition-all duration-150 hover:shadow-xl"
-        >
-          Filters
-        </Button>
-      </div>
-
       {/* Processing overlay */}
       <AnimatePresence>
         {isProcessing && (
@@ -482,20 +474,32 @@ export function CanvasViewport({
       </AnimatePresence>
 
       {/* Zoom indicator */}
-      <div className="bg-background/95 border-border/60 absolute bottom-6 left-6 rounded-xl border px-4 py-2 shadow-lg backdrop-blur-md">
+      <div className="bg-background/95 border-border/60 absolute bottom-1 left-1 rounded-xl border px-2 py-2 shadow-lg backdrop-blur-md">
         <span className="text-foreground text-xs font-medium">
           {Math.round(zoom * 100)}%
         </span>
       </div>
 
       {/* Scroll hint */}
-      <div className="bg-background/95 border-border/60 absolute right-6 bottom-6 rounded-xl border px-4 py-2 shadow-lg backdrop-blur-md">
+      <div className="bg-background/95 border-border/60 absolute right-1 bottom-1 rounded-xl border px-2 py-0 shadow-lg backdrop-blur-md">
         <span className="text-muted-foreground text-xs">Scroll to zoom</span>
       </div>
 
+      {/* Filters button */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2">
+        <Button
+          onClick={() => setShowFilterOverlay((prev) => !prev)}
+          variant="outline"
+          size="sm"
+          className="bg-background/95 border-border/60 hover:bg-muted/95 hover:border-border/80 shadow-lg backdrop-blur-md transition-all duration-150 hover:shadow-xl"
+        >
+          Filters
+        </Button>
+      </div>
+
+      {/* Filter Overlay */}
       <FilterOverlay
         isOpen={showFilterOverlay}
-        onClose={() => setShowFilterOverlay(false)}
         onApplyFilter={handleApplyFilter}
         originalImage={image}
         notifyOfChange={notifyOfChange}

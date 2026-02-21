@@ -156,4 +156,17 @@
       display: block;
     }
   }
+
+  /* Modern minimal spin buttons (only visible on hover) */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    opacity: 0;
+    transition: opacity 0.2s;
+    cursor: pointer;
+  }
+
+  input[type="number"]:hover::-webkit-inner-spin-button,
+  input[type="number"]:hover::-webkit-outer-spin-button {
+    opacity: 1;
+  }
 }

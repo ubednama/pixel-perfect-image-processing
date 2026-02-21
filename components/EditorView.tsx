@@ -1,12 +1,15 @@
 "use client";
 
 import { CanvasViewport } from "@/components/CanvasViewport";
-import { EditingControls } from "@/components/EditingControls";
 import { EditorHeader } from "@/components/EditorHeader";
 import { OriginalPreview } from "@/components/OriginalPreview";
+import { AdjustPanel } from "@/components/panels/AdjustPanel";
+import { CropTransformPanel } from "@/components/panels/CropTransformPanel";
+import { FilterPanel } from "@/components/panels/FilterPanel";
+import { type ActivePanel, SidebarRail } from "@/components/SidebarRail";
 import { Button } from "@/components/ui/button";
 import type { HistoryEntry, ImageEdits, ImageState } from "@/types/image-edits";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -59,6 +62,8 @@ const defaultEdits: ImageEdits = {
   },
   grayscale: false,
   negate: false,
+  exposure: 0,
+  opacity: 1,
 
   // Filters and effects
   blur: 0,
@@ -170,6 +175,20 @@ const defaultEdits: ImageEdits = {
   pipelineColorspace: "scrgb",
 };
 
+function getInitialExportFormat(
+  filename?: string | null
+): ImageEdits["exportFormat"] {
+  if (!filename) return defaultEdits.exportFormat;
+  const ext = filename.split(".").pop()?.toLowerCase();
+  if (ext === "jpg" || ext === "jpeg") return "jpeg";
+  if (ext === "png") return "png";
+  if (ext === "webp") return "webp";
+  if (ext === "avif") return "avif";
+  if (ext === "tiff") return "tiff";
+  if (ext === "gif") return "gif";
+  return defaultEdits.exportFormat;
+}
+
 export function EditorView({
   uploadedImage,
   originalImage,
@@ -181,7 +200,10 @@ export function EditorView({
   const [imageState, setImageState] = useState<ImageState>({
     baseImage: uploadedImage,
     originalImage: originalImage,
-    edits: defaultEdits,
+    edits: {
+      ...defaultEdits,
+      exportFormat: getInitialExportFormat(originalFilename),
+    },
     processedImageUrl: "",
   });
 
@@ -192,7 +214,7 @@ export function EditorView({
 
   // UI state
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
-  const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
+  const [activePanel, setActivePanel] = useState<ActivePanel>("adjust");
   const [zoom, setZoom] = useState(1);
   const [viewportBounds, setViewportBounds] = useState({
     x: 0,
@@ -203,23 +225,30 @@ export function EditorView({
   const [showOriginal, setShowOriginal] = useState(false);
   const [cropMode, setCropMode] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  // Persists the last processed image URL for download even after saves clear processedImageUrl
+  const [downloadableImageUrl, setDownloadableImageUrl] = useState<string>("");
 
   // Initialize history with the uploaded image
   useEffect(() => {
     // Only initialize if we don't have a base image or if the uploaded image has changed
     // and it's not the same as what we just saved (to avoid loop on save)
     if (uploadedImage && uploadedImage !== imageState.baseImage) {
+      const initialEdits = {
+        ...defaultEdits,
+        exportFormat: getInitialExportFormat(originalFilename),
+      };
+
       setImageState((prev) => ({
         ...prev,
         baseImage: uploadedImage,
-        originalImage: originalImage || uploadedImage, // Use provided original or fallback to upload
-        edits: defaultEdits,
+        originalImage: originalImage || uploadedImage,
+        edits: initialEdits,
         processedImageUrl: "",
       }));
 
       const initialEntry: HistoryEntry = {
         action: "Initial image",
-        edits: defaultEdits,
+        edits: initialEdits,
         baseImage: uploadedImage,
         timestamp: Date.now(),
       };
@@ -227,7 +256,7 @@ export function EditorView({
       setHistoryIndex(0);
       setLastSavedImage(uploadedImage);
     }
-  }, [uploadedImage, originalImage, imageState.baseImage]);
+  }, [uploadedImage, originalImage, originalFilename, imageState.baseImage]);
 
   // Add to history function - rebuilt
   const addToHistory = useCallback(
@@ -278,23 +307,27 @@ export function EditorView({
     setHasUnsavedChanges(true);
   }, []);
 
-  // Reset all edits
+  // Reset all edits — preserve current exportFormat
   const handleResetAll = useCallback(() => {
+    const currentExportFormat = imageState.edits.exportFormat;
+    const resetEdits = { ...defaultEdits, exportFormat: currentExportFormat };
     setImageState((prev) => ({
       ...prev,
       baseImage: lastSavedImage,
-      edits: defaultEdits,
+      edits: resetEdits,
       processedImageUrl: "",
     }));
     setHasUnsavedChanges(false);
-    addToHistory("Reset all edits", defaultEdits);
-  }, [addToHistory, lastSavedImage]);
+    addToHistory("Reset all edits", resetEdits);
+  }, [addToHistory, lastSavedImage, imageState.edits.exportFormat]);
 
   const handleImageUpdate = useCallback((imageUrl: string) => {
     setImageState((prev) => ({
       ...prev,
       processedImageUrl: imageUrl,
     }));
+    // Always keep the latest processed image available for download
+    if (imageUrl) setDownloadableImageUrl(imageUrl);
   }, []);
 
   // Save changes - rebuilt to properly update base image
@@ -306,33 +339,41 @@ export function EditorView({
 
     const newBaseImage = imageState.processedImageUrl;
 
-    // Update the last saved image and reset edits
+    // Update the last saved image and reset edits, preserve exportFormat
     setLastSavedImage(newBaseImage);
+    const currentExportFormat = imageState.edits.exportFormat;
+    const savedEdits = { ...defaultEdits, exportFormat: currentExportFormat };
 
     setImageState((prev) => ({
       ...prev,
       baseImage: newBaseImage,
-      originalImage: newBaseImage, // Update original image reference to the new base
-      edits: defaultEdits,
+      originalImage: newBaseImage,
+      edits: savedEdits,
       processedImageUrl: "",
     }));
 
     // Clear history and start fresh from this saved state
     const savedEntry: HistoryEntry = {
       action: "Saved changes as new base",
-      edits: defaultEdits,
+      edits: savedEdits,
       baseImage: newBaseImage,
       timestamp: Date.now(),
     };
     setHistory([savedEntry]);
     setHistoryIndex(0);
     setHasUnsavedChanges(false);
+    // Keep downloadableImageUrl so Download stays active after save
+    setDownloadableImageUrl(newBaseImage);
 
     // Notify parent only on SAVE
     onImageUpdate(newBaseImage);
 
     toast.success("Changes saved successfully");
-  }, [imageState.processedImageUrl, onImageUpdate]);
+  }, [
+    imageState.processedImageUrl,
+    imageState.edits.exportFormat,
+    onImageUpdate,
+  ]);
 
   // Undo function - rebuilt
   const handleUndo = useCallback(() => {
@@ -381,7 +422,7 @@ export function EditorView({
     []
   );
 
-  const handleZoomReset = useCallback(() => {
+  const _handleZoomReset = useCallback(() => {
     setZoom(1);
   }, []);
 
@@ -423,6 +464,7 @@ export function EditorView({
         onReset={handleResetAll}
         onSaveChanges={handleSaveChanges}
         processedImageUrl={imageState.processedImageUrl}
+        downloadableImageUrl={downloadableImageUrl}
         onBeforeAfterToggle={handleBeforeAfterToggle}
         targetKB={imageState.edits.downloadTargetKB}
         exportFormat={imageState.edits.exportFormat}
@@ -491,7 +533,7 @@ export function EditorView({
           </Button>
         ) : null}
 
-        {/* Center Canvas - Live Preview */}
+        {/* Center Canvas */}
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -511,48 +553,82 @@ export function EditorView({
           />
         </motion.div>
 
-        {/* Right Sidebar - Editing Controls */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{
-            opacity: 1,
-            x: 0,
-            width: rightSidebarOpen ? 320 : 0,
-          }}
-          transition={{ duration: 0.2, ease: "easeInOut" }}
-          className="border-border bg-card/50 relative overflow-hidden border-l backdrop-blur-sm"
-          style={{ width: rightSidebarOpen ? 320 : 0 }}
-        >
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
-            className="bg-background border-border hover:bg-muted absolute top-4 -left-3 z-10 h-8 w-8 rounded-full border p-0 shadow-md transition-all duration-200 hover:shadow-lg"
-            title={rightSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-          >
-            {rightSidebarOpen ? (
-              <ChevronRight size={14} />
-            ) : (
-              <ChevronLeft size={14} />
-            )}
-          </Button>
+        {/* Right Panel — slides in when a panel is active */}
+        <AnimatePresence>
+          {activePanel && (
+            <motion.div
+              key={activePanel}
+              initial={{ opacity: 0, width: 0 }}
+              animate={{ opacity: 1, width: 280 }}
+              exit={{ opacity: 0, width: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="border-border bg-card/50 flex h-full flex-col overflow-hidden border-l backdrop-blur-sm"
+            >
+              {/* Panel header */}
+              <div className="border-border flex shrink-0 items-center gap-2 border-b px-4 py-3">
+                <span className="text-foreground text-sm font-semibold capitalize">
+                  {activePanel === "adjust"
+                    ? "Adjust"
+                    : activePanel === "filters"
+                      ? "Filters"
+                      : "Crop & Transform"}
+                </span>
+                {activePanel === "adjust" && (
+                  <div className="ml-auto flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleUndo}
+                      disabled={!canUndo}
+                      className="h-7 px-2 text-xs"
+                    >
+                      Undo
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRedo}
+                      disabled={!canRedo}
+                      className="h-7 px-2 text-xs"
+                    >
+                      Redo
+                    </Button>
+                  </div>
+                )}
+              </div>
 
-          {rightSidebarOpen && (
-            <EditingControls
-              edits={imageState.edits}
-              onEditChange={handleEditChange}
-              originalImage={imageState.originalImage}
-              canUndo={canUndo}
-              canRedo={canRedo}
-              onUndo={handleUndo}
-              onRedo={handleRedo}
-              onZoomReset={handleZoomReset}
-              notifyOfChange={notifyOfChange}
-              onCropModeToggle={setCropMode}
-              cropMode={cropMode}
-            />
+              {/* Panel body */}
+              <div className="min-h-0 flex-1">
+                {activePanel === "adjust" && (
+                  <AdjustPanel
+                    edits={imageState.edits}
+                    onEditChange={handleEditChange}
+                  />
+                )}
+                {activePanel === "filters" && (
+                  <FilterPanel
+                    originalImage={imageState.originalImage}
+                    onApplyFilter={(edits, name) =>
+                      handleEditChange(edits, `Filter: ${name}`)
+                    }
+                    notifyOfChange={notifyOfChange}
+                  />
+                )}
+                {activePanel === "crop" && (
+                  <div className="overflow-y-auto p-4">
+                    <CropTransformPanel
+                      edits={imageState.edits}
+                      onEditChange={handleEditChange}
+                    />
+                  </div>
+                )}
+              </div>
+            </motion.div>
           )}
-        </motion.div>
+        </AnimatePresence>
+
+        {/* Right Rail */}
+        <SidebarRail activePanel={activePanel} onPanelChange={setActivePanel} />
       </motion.div>
     </motion.div>
   );

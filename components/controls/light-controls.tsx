@@ -72,7 +72,7 @@ export function LightControls({ edits, onEditChange }: LightControlsProps) {
                 }
                 min={adjustment.min}
                 max={adjustment.max}
-                className="h-8 w-10 px-1 py-0.5 text-right text-xs"
+                className="h-8 w-12 px-1 py-0.5 text-right text-xs"
               />
               <Button
                 variant="ghost"

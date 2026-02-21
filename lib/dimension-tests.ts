@@ -176,6 +176,8 @@ export async function runDimensionTest(
       tint: { r: 0, g: 0, b: 0, enabled: false },
       grayscale: false,
       negate: false,
+      exposure: 0,
+      opacity: 1,
 
       // Filters and effects
       blur: 0,

@@ -164,9 +164,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Apply gamma correction
+    // Apply gamma correction (Sharp accepts values between 1.0 and 3.0)
     if (edits.gamma && edits.gamma !== 1.0) {
-      sharpInstance = sharpInstance.gamma(edits.gamma);
+      const clampedGamma = Math.max(1.0, Math.min(3.0, edits.gamma));
+      sharpInstance = sharpInstance.gamma(clampedGamma);
     }
 
     // Apply normalize if enabled
@@ -200,24 +201,25 @@ export async function POST(request: NextRequest) {
         lightness: edits.modulate.lightness,
       });
     } else {
-      // Apply individual color adjustments (legacy support)
-      if (
-        edits.brightness !== 0 ||
-        edits.contrast !== 0 ||
-        edits.saturation !== 0 ||
-        edits.hue !== 0
-      ) {
+      // Apply individual color adjustments
+      if (edits.brightness !== 0 || edits.saturation !== 0 || edits.hue !== 0) {
         const brightness = 1 + edits.brightness / 100;
-        const contrast = 1 + edits.contrast / 100;
         const saturation = 1 + edits.saturation / 100;
         const hue = edits.hue;
 
         sharpInstance = sharpInstance.modulate({
           brightness,
           saturation,
-          lightness: contrast,
           hue,
         });
+      }
+
+      // Apply contrast separately using linear transformation
+      // contrast=0 → no change (a=1,b=0), contrast=100 → full boost (a=2,b=-128/255)
+      if (edits.contrast !== 0) {
+        const a = 1 + edits.contrast / 100;
+        const b = 128 * (1 - a); // shift so midpoint stays at 128
+        sharpInstance = sharpInstance.linear(a, b);
       }
     }
 
@@ -228,6 +230,22 @@ export async function POST(request: NextRequest) {
         g: edits.tint.g,
         b: edits.tint.b,
       });
+    }
+
+    // Apply exposure (EV stops): linear(2^stops, 0)
+    if (edits.exposure && edits.exposure !== 0) {
+      const multiplier = Math.pow(2, edits.exposure);
+      sharpInstance = sharpInstance.linear(multiplier, 0);
+    }
+
+    // Apply opacity via ensureAlpha (only meaningful for PNG/WebP)
+    if (
+      edits.opacity !== undefined &&
+      edits.opacity !== null &&
+      edits.opacity < 1
+    ) {
+      const clampedOpacity = Math.max(0, Math.min(1, edits.opacity));
+      sharpInstance = sharpInstance.ensureAlpha(clampedOpacity);
     }
 
     // Apply threshold if enabled
@@ -248,7 +266,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (edits.blur > 0) {
-      sharpInstance = sharpInstance.blur(edits.blur);
+      const clampedBlur = Math.max(0.3, edits.blur);
+      sharpInstance = sharpInstance.blur(clampedBlur);
     }
 
     // Apply median filter if enabled
@@ -269,13 +288,6 @@ export async function POST(request: NextRequest) {
         x1: edits.sharpen.x1,
         y2: edits.sharpen.y2,
         y3: edits.sharpen.y3,
-      });
-    } else if (typeof edits.sharpen === "number" && edits.sharpen > 0) {
-      // Legacy support for number-based sharpen
-      sharpInstance = sharpInstance.sharpen({
-        sigma: edits.sharpen / 10,
-        m1: 1,
-        m2: 2,
       });
     }
 
@@ -431,6 +443,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
+    console.error("[process-image] Error:", error);
     return NextResponse.json(
       {
         error: "Failed to process image",
